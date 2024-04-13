@@ -31,12 +31,13 @@ rng = random.Random(seed)
 
 fix = visual.TextStim(win, "+")  # fixation cross
 blank = visual.TextStim(win, "")  # blank window
-int_trial = 0
-mask_trial = 0
+int_trial = 3
+mask_trial = 3
 
 gPar0={
 	'spacing' : 48,
-	'sizeIndicator' : [0,1,1,1,0]
+	'sizeIndicator' : [0,1,1,1,0],
+	'increment': [1,-1]
 }  
 
 
@@ -89,8 +90,8 @@ def maskingTrial(soa,gPar):
 	allRed=visual.BufferImageStim(win,stim=redDots)
 	mask=visual.BufferImageStim(win,stim=maskDots)
 	targ=visual.BufferImageStim(win,stim=targetDots)
-	frame = [fix, allRed, targ, allRed, mask, allRed, allRed]
-	frameDurations = [120, 60, 1, soa, 20, 60, 1]
+	frame = [fix, blank, targ, blank, mask, blank, allRed]
+	frameDurations = [120, 60, 5, soa, 5, 60, 1]
 	stamps=elib.runFrames(win,frame,frameDurations,trialClock)
 	critTime=elib.actualFrameDurations(frameDurations,stamps)[3]
 	critPass=(np.absolute(soa/refreshRate-critTime)<.001)
@@ -99,7 +100,7 @@ def maskingTrial(soa,gPar):
 	support.feedback(correct)
 	return([target,resp,correct,np.round(critTime,4),critPass])
 
-def block(blk,task,trials,soa,gPar,inc=1):
+def block(blk,task,trials,soa,gPar):
 	correctPrevious=0 
 	for t in range(trials):
 		input=[pid,sid,blk,task,t,soa]
@@ -109,7 +110,7 @@ def block(blk,task,trials,soa,gPar,inc=1):
 			result=maskingTrial(soa,gPar)
 		output=input+result
 		print(*output,sep=", ", file=fptr)
-		[soa,correctPrevious]=support.stairCase(soa,result[2],correctPrevious,inc)
+		[soa,correctPrevious]=support.stairCase(soa,result[2],correctPrevious,gPar['increment'][task])
 	return(soa)
 
 
@@ -128,10 +129,10 @@ for r in range(mask_trial):
 	maskingTrial(100,gPar)
 for r in range(mask_trial):
 	maskingTrial(80,gPar)
-#support.instruct(win,"Integration Task")
+support.instruct(win,"Integration Task")
 #block(0,1,3,60,gPar)
 support.instruct(win,"Masking Task")
-block(0,1,50,2,gPar,inc=-1)
+#block(0,0,3,1,gPar)
 
 win.close()
 

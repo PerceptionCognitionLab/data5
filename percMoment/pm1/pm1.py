@@ -9,146 +9,144 @@ import os
 import time   
 sys.path.insert(0, '/home/exp/specl-exp/lib/data5/')
 import expLib51 as elib
+import support
 
+
+# Housekeeping
+abortKey=['9']
 refreshRate=165
 elib.setRefreshRate(refreshRate)
 expName="pm1"
 dbConf=elib.data5
 [pid,sid,fname]=elib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
-
 fptr=open(fname,"w")
+ 
 
-# Define variables
-scale = 250
-win = visual.Window(units="pix", size=(2 * scale, 2 * scale), color=[-1, -1, -1], fullscr=True)
-spacing = 48 # spacing between dots
-correct1 = sound.Sound(500,secs = .1) # correct response
-correct2 = sound.Sound(1000,secs = .2) 
+win = visual.Window(units="pix", size=(500, 500), color=[-1, -1, -1], fullscr=True)
 mouse = event.Mouse(visible=False, newPos=[0,0], win=win) #mouse centered at zero
 trialClock=core.Clock()
-fix = visual.TextStim(win, "+")  # fixation cross
-blank = visual.TextStim(win, "")  # blank window
-numTrials = 50 # number of trials
 seed = random.randrange(1e6)
 rng = random.Random(seed)
-abortKey=['9']
 
-# Define functions
+fix = visual.TextStim(win, "+")  # fixation cross
+blank = visual.TextStim(win, "")  # blank window
+int_trial = 5
+mask_trial = 5
 
-def makeDotIndex(target):
-    tot = np.array(range(49))
-    wot = np.delete(tot, target)
-    index = np.array(range(48))
-    iA = np.sort(np.random.choice(index, 24, replace=False))
-    iB = np.delete(index, iA)
-    return [wot[iA], wot[iB]]
-
-def mouseOnResp(x, y, mousePos, crit=20):
-    dlc = []
-    for i in range(len(x)):
-        dist = np.linalg.norm([x[i], y[i]] - mousePos)
-        dlc.append(dist < crit)
-    S = sum(bool(x) for x in dlc)
-    if S == 1:
-        out = np.where(dlc)[0][0]
-    else: 
-        out = -1    
-    return out
-
-def adjustSOA(soa,correct,correctPrevious):
-    if (correct and correctPrevious==1):
-    	soa+=1
-    	cv=0
-    if (correct and correctPrevious==0):
-    	cv=1   
-    if (not correct):
-        soa-=1
-        cv=0
-    if (soa==0):
-     	soa=1
-    return ([soa,cv]) 
-
-#Audio feedback
-def correctSound(correct):
-	if correct:
-		correct1.play()
-		correct2.play()
-
-# Make_ trials experiment portion of code
-x = []
-y = []
-
-for i in range(49):
-    result = divmod(i, 7)
-    x.append(spacing * (result[0] - 3))
-    y.append(spacing * (result[1] - 3))
-    
-
-perimeter = [0,1,2,3,4,5,6,7,13,14,20,21,27,28,34,35,41,42,43,44,45,46,47,48] # excluded target points on perimeter of 7 x 7 square
-valid_points = [i for i in range(49) if i not in perimeter]
+gPar0={
+	'spacing' : 48,
+	'sizeIndicator' : [0,1,1,1,0]
+}  
 
 
-#########################################################################################################################
+def integrationTrial(soa,gPar,prac=False):
+	[x,y]=[gPar['x'],gPar['y']]
+	target= random.choice(gPar['validTarget'])
+	[aDots, bDots]=support.intDotIndex(gPar,target)
+	dots=[]
+	for i in range(gPar['N']):
+		dots.append(visual.Circle(win, pos=(x[i],y[i]), fillColor=[0, -1, -1], radius=2.5))
+	allRed=visual.BufferImageStim(win,stim=dots)
+	adots=[]
+	alldots=[]
+	for i in range(len(aDots)):
+		adots.append(visual.Circle(win, pos=(x[aDots[i]],y[aDots[i]]), fillColor=[1, 1, 1], radius=5))
+		alldots.append(visual.Circle(win, pos=(x[aDots[i]],y[aDots[i]]), fillColor=[1, 1, 1], radius=5))
+	a=visual.BufferImageStim(win,stim=adots)
+	bdots=[]
+	for i in range(len(bDots)):
+		bdots.append(visual.Circle(win, pos=(x[bDots[i]],y[bDots[i]]), fillColor=[1, 1, 1], radius=5))
+		alldots.append(visual.Circle(win, pos=(x[bDots[i]],y[bDots[i]]), fillColor=[1, 1, 1], radius=5))
+	b=visual.BufferImageStim(win,stim=bdots)
+	frame = [fix, blank, a, blank, b, blank, allRed]
+	frameDurations = [120, 60, 5, soa, 5, 60, 1]
+	if prac:
+			all=visual.BufferImageStim(win,stim=alldots)
+			frame = [fix,blank,all,blank,blank,blank,allRed]
+			frameDurations=[120,60,120,1,1,60,1]
+	stamps=elib.runFrames(win,frame,frameDurations,trialClock)
+	critTime=elib.actualFrameDurations(frameDurations,stamps)[3]
+	critPass=(np.absolute(soa/refreshRate-critTime)<.001)
+	resp=support.mouseResponse(mouse,win,gPar,frame[6])
+	correct=target==resp
+	support.feedback(correct)
+	return([target,resp,correct,np.round(critTime,4),critPass])
 
 
-def doTrial(soa):
-    target = random.choice(valid_points)
-    [aDots, bDots] = makeDotIndex(target)
-    dots=[]
-    for i in range(len(aDots)):
-        dots.append(visual.Circle(win, pos=(x[aDots[i]],y[aDots[i]]), fillColor=[1, 1, 1], radius=5))
-    a=visual.BufferImageStim(win,stim=dots)
-    dots=[]
-    for i in range(len(bDots)):
-        dots.append(visual.Circle(win, pos=(x[bDots[i]],y[bDots[i]]), fillColor=[1, 1, 1], radius=5))
-    b=visual.BufferImageStim(win,stim=dots)
-    dots=[]
-    for i in range(len(x)):
-        dots.append(visual.Circle(win, pos=(x[i],y[i]), fillColor=[0, -1, -1], radius=2.5))
-    all=visual.BufferImageStim(win,stim=dots)	
-    frame = [fix, blank, a, blank, b, blank, all]
-    frameDurations = [120, 60, 1, soa, 1, 60, 1]
-    stamps=elib.runFrames(win,frame,frameDurations,trialClock)
-# Get Choice		
-    mousePress = False
-    mouse.setVisible(True)
-    mouse.setPos((300,0))
-    while not mousePress:
-        buttons = mouse.getPressed(getTime=False)
-        resp = mouseOnResp(x, y, mouse.getPos())
-        frame[6].draw()
-        if resp > -1: 
-            respDot = visual.Circle(win, pos=(x[resp], y[resp]), fillColor=[1, 1, 1], radius=2)
-            respDot.draw()
-        win.flip()
-        mousePress = any(buttons)
-# Give Feedback
-    correct = resp == target
-    correctSound(correct)
-    print(pid,sid,soa,target,resp,correct,sep=", ", file=fptr)
-    fptr.flush()
-    mouse.setVisible(False)
-    return(correct)
+def maskingTrial(soa,gPar):
+	[x,y]=[gPar['x'],gPar['y']]
+	target= random.choice(gPar['validTarget'])
+	maskDots=[]
+	redDots=[]
+	targetDots=[]
+	targetDots.append(visual.Circle(win, pos=(x[target],y[target]),fillColor=[1, 1, 1], radius=5))
+	for i in range(gPar['N']):
+		if (i != target):
+			targetDots.append(visual.Circle(win, pos=(x[i],y[i]), fillColor=[0, -1, -1], radius=2.5))
+		redDots.append(visual.Circle(win, pos=(x[i],y[i]), fillColor=[0, -1, -1], radius=2.5))
+		maskDots.append(visual.Circle(win, pos=(x[i],y[i]),fillColor=[1, 1, 1], radius=5))
+	allRed=visual.BufferImageStim(win,stim=redDots)
+	mask=visual.BufferImageStim(win,stim=maskDots)
+	targ=visual.BufferImageStim(win,stim=targetDots)
+	frame = [fix, allRed, targ, allRed, mask, allRed, allRed]
+	frameDurations = [120, 60, 1, soa, 20, 60, 1]
+	stamps=elib.runFrames(win,frame,frameDurations,trialClock)
+	critTime=elib.actualFrameDurations(frameDurations,stamps)[3]
+	critPass=(np.absolute(soa/refreshRate-critTime)<.001)
+	resp=support.mouseResponse(mouse,win,gPar,frame[6])
+	correct=target==resp
+	support.feedback(correct)
+	return([target,resp,correct,np.round(critTime,4),critPass])
 
-visual.TextStim(win,"Welcome").draw()
-win.flip()
-a=event.waitKeys()
-
-soa=1
-correctPrevious=0
-for n in range(numTrials):
-	correct=doTrial(soa)
-	[soa,correctPrevious]=adjustSOA(soa,correct,correctPrevious)
+def block(blk,task,trials,soa,gPar,inc=1):
+	correctPrevious=0 
+	for t in range(trials):
+		input=[pid,sid,blk,task,t,soa]
+		if (task==0):
+			result=integrationTrial(soa,gPar)
+		if (task==1):
+			result=maskingTrial(soa,gPar)
+		output=input+result
+		print(*output,sep=", ", file=fptr)
+		[soa,correctPrevious]=support.stairCase(soa,result[2],correctPrevious,inc)
+	return(soa)
 
 
-visual.TextStim(win,"Thank You").draw()
-win.flip()
+#########
+		
+
+gPar=support.initGlobals(gPar0)  # adds x, y, validTarget, N to structure
+
+
+soa=[1,30]
+inc=    [1,-3,1,-1,-1,1]
+taskBlk=[0, 1,0, 1, 1,0]
+n=[20,20,50,50,50,50]
+numBlock=len(taskBlk)
+support.instruct(win,"Welcome")
+support.instruct(win,"Find The Missing Dot")
+for r in range(int_trial):
+	integrationTrial(1,gPar,prac=True)
+	event.waitKeys()
+support.instruct(win,"Find The Flashed Dot")
+for r in range(mask_trial):
+	maskingTrial(50,gPar)
+	event.waitKeys()
+for b in range(numBlock):
+	tsk=taskBlk[b]
+	txt = ["Find The Missing Dot","Find The Flashed Dot"]
+	support.instruct(win,txt[tsk])
+	soa[tsk]=block(b,tsk,n[b],soa[tsk],gPar,inc[b])
+
+fptr.flush()
+
 a=event.waitKeys(keyList=abortKey)
 hz=round(win.getActualFrameRate())
-size=win.size
+[resX,resY]=win.size
+
 
 win.close()
-elib.stopExp(sid,hz,size[0],size[1],seed,dbConf)
 
+stopExp(sessionID,hz,resX,resY,seed,dbConf)
 
 core.quit()
