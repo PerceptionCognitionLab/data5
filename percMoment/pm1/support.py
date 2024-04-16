@@ -40,7 +40,10 @@ def initGlobals(gPar0):
 	gPar['N']=len(x)
 	return(gPar)
 
-
+def mouseNext():
+    while True:
+        if mouse.getPressed()[2]:  
+            break
 def mouseOnResp(x, y, mousePos, crit=20):
     dlc = []
     for i in range(len(x)):

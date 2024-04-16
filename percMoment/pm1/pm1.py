@@ -26,12 +26,12 @@ win = visual.Window(units="pix", size=(500, 500), color=[-1, -1, -1], fullscr=Tr
 mouse = event.Mouse(visible=False, newPos=[0,0], win=win) #mouse centered at zero
 trialClock=core.Clock()
 seed = random.randrange(1e6)
-rng = random.Random(seed)
+random.seed(seed)
 
-fix = visual.TextStim(win, "+")  # fixation cross
+fix 	= visual.TextStim(win, "+")  # fixation cross
 blank = visual.TextStim(win, "")  # blank window
-int_trial = 5
-mask_trial = 5
+int_trial = 3
+mask_trial = 3
 
 gPar0={
 	'spacing' : 48,
@@ -127,11 +127,11 @@ support.instruct(win,"Welcome")
 support.instruct(win,"Find The Missing Dot")
 for r in range(int_trial):
 	integrationTrial(1,gPar,prac=True)
-	event.waitKeys()
+	support.mouseNext()
 support.instruct(win,"Find The Flashed Dot")
 for r in range(mask_trial):
 	maskingTrial(50,gPar)
-	event.waitKeys()
+	support.mouseNext()
 for b in range(numBlock):
 	tsk=taskBlk[b]
 	txt = ["Find The Missing Dot","Find The Flashed Dot"]
@@ -148,5 +148,5 @@ hz=round(win.getActualFrameRate())
 win.close()
 
 stopExp(sessionID,hz,resX,resY,seed,dbConf)
-
+os.system('cat *.dat >all.dat')
 core.quit()
