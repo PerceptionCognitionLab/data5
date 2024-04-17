@@ -40,10 +40,13 @@ def initGlobals(gPar0):
 	gPar['N']=len(x)
 	return(gPar)
 
-def mouseNext():
-    while True:
-        if mouse.getPressed()[2]:  
-            break
+def mouseNext(mouse):
+	mousePress = False
+	while True:
+		if mouse.getPressed()[2]:  
+			break
+
+
 def mouseOnResp(x, y, mousePos, crit=20):
     dlc = []
     for i in range(len(x)):
@@ -96,15 +99,19 @@ def stairCase(soa,correct,correctPrevious,increment):
 		soa=1
 	return ([soa,cv]) 
 
-def instruct(win, message):
-    text_height = 35  
-    line_spacing = 1.5  
-    lines = message.split('\n')
+def instruct(win, mouse,message,advance='mouse'):
 
-    for i, line in enumerate(lines):
-        y_position = (i * text_height * line_spacing) - (len(lines) * text_height * line_spacing / 2)
-        visual.TextStim(win, text=line, height=text_height, pos=(0, y_position)).draw()
+	text_height = 35  
+	line_spacing = 1.5  
+	lines = message.split('\n')
 
-    win.flip()
-    event.waitKeys()
-    return 0
+	core.wait(.3)
+	for i, line in enumerate(lines):
+		y_position = (len(lines) * text_height * line_spacing / 2) - (i * text_height * line_spacing) 
+		visual.TextStim(win, text=line, height=text_height, pos=(0, y_position)).draw()
+	win.flip()
+	if advance== 'mouse':
+		mouseNext(mouse);
+	else:
+		event.waitKeys()
+	return 0

@@ -123,23 +123,25 @@ inc=    [1,-3,1,-1,-1,1]
 taskBlk=[0, 1,0, 1, 1,0]
 n=[20,20,50,50,50,50]
 numBlock=len(taskBlk)
-support.instruct(win,"Welcome")
-support.instruct(win,"Find The Missing Dot")
+support.instruct(win,mouse,"Welcome\n\n(Right Mouse Button To Continue)")
+support.instruct(win,mouse,"Find The Missing Dot\n\n (Right Mouse Button To Continue)")
 for r in range(int_trial):
 	integrationTrial(1,gPar,prac=True)
-	support.mouseNext()
-support.instruct(win,"Find The Flashed Dot")
+	support.instruct(win,mouse,"Right Mouse Button To Continue")
+support.instruct(win,mouse,"Find The Flashed Dot\n\n (Right Mouse Button To Continue)")
 for r in range(mask_trial):
 	maskingTrial(50,gPar)
-	support.mouseNext()
+	support.instruct(win,mouse,"Right Mouse Button To Continue")
 for b in range(numBlock):
 	tsk=taskBlk[b]
-	txt = ["Find The Missing Dot","Find The Flashed Dot"]
-	support.instruct(win,txt[tsk])
+	txt = ["Find The Missing Dot\n\n (Right Mouse Button To Continue)",
+		"Find The Flashed Dot\n\n (Right Mouse Button To Continue)"]
+	support.instruct(win,mouse,txt[tsk])
 	soa[tsk]=block(b,tsk,n[b],soa[tsk],gPar,inc[b])
 
 fptr.flush()
 
+support.instruct(win,mouse,"You Are Done!\n\n Thank You \n Please See Experimenter",advance="")
 a=event.waitKeys(keyList=abortKey)
 hz=round(win.getActualFrameRate())
 [resX,resY]=win.size
