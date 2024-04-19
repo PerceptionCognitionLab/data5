@@ -18,8 +18,8 @@ refreshRate=165
 elib.setRefreshRate(refreshRate)
 expName="pm1"
 dbConf=elib.data5
-#[pid,sid,fname]=elib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
-[pid,sid,fname]=[1,1,'test']
+[pid,sid,fname]=elib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
+#[pid,sid,fname]=[1,1,'test']
 fptr=open(fname,"w")
  
 
@@ -122,7 +122,7 @@ gPar=support.initGlobals(gPar0)  # adds x, y, validTarget, N to structure
 soa=[1,15]
 inc=    [1,-3,1,-1,-1,1]
 taskBlk=[0, 1,0, 1, 1,0]
-n=[20,20,65,65,65,65]
+#n=[20,20,65,65,65,65]
 n=[1,1,1,1,1,1]
 numBlock=len(taskBlk)
 support.instruct(win,mouse,"Welcome")
