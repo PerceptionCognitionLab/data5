@@ -123,7 +123,7 @@ soa=[1,15]
 inc=    [1,-3,1,-1,-1,1]
 taskBlk=[0, 1,0, 1, 1,0]
 #n=[20,20,65,65,65,65]
-n=[1,1,1,1,1,1]
+n=[10,10,10,10,10,10]
 numBlock=len(taskBlk)
 support.instruct(win,mouse,"Welcome")
 support.instruct(win,mouse,"Find The Missing Dot")

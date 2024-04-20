@@ -119,8 +119,8 @@ gPar=support.initGlobals(gPar0)  # adds x, y, validTarget, N to structure
 
 
 soa=[1,15]
-inc=    [1,-3,1,-1,-1,1]
-taskBlk=[0, 1,0, 1, 1,0]
+inc=    [1,-3,1,-1,1,-1]
+taskBlk=[0, 1,0, 1,0, 1]
 n=[20,20,65,65,65,65]
 #n=[1,1,1,1,1,1]
 numBlock=len(taskBlk)
