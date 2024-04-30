@@ -1,7 +1,19 @@
 from psychopy import core, visual, sound, event, clock
 import numpy as np
 from numpy import random  
-rng = random.default_rng()
+import sys
+sys.path.insert(0, '/home/exp/specl-exp/lib/data5/')
+import expLib51 as elib
+seed = 1
+rng = random.default_rng(seed)
+
+refreshRate=165
+elib.setRefreshRate(refreshRate)
+expName="devEv"
+dbConf=elib.beta
+#[pid,sid,fname]=elib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
+[pid,sid,fname]=[1,1,'test']
+fptr=open(fname,"w")
 
 win = visual.Window(units="pix", size=(500, 500), color=[-1, -1, -1], fullscr=True)
 correctSound1 = sound.Sound(500,secs = 0.25)
@@ -16,39 +28,49 @@ def playSound():
 def displayDots(mu,sd):
     neg = rng.integers(0,2)
     if(neg == 0):
-        correct = 'x'
+        correct = -1
     else:
-        correct = 'm'
+        correct = 1
     coordinates = []
     for i in range(31):
         coordinates.append(np.round(np.random.normal(mu*(neg*2-1),sd)))
-    for i in range(coordinates):
+    for i in range(len(coordinates)):
         circ=visual.Circle(win, pos=(coordinates[i],0), fillColor=[1, 1, 1], radius=5)
         circ.draw()
         win.flip()
         core.wait(.3)
         if(event.getKeys(['x'])):
-            if(correct == 'x'):
+            if(correct == -1):
                 playSound()
-            return correct,'x',i,coordinates
+            return [coordinates,correct,-1,i]
         if(event.getKeys(['m'])):
-            if(correct == 'm'):
+            if(correct == 1):
                 playSound()
-            return correct,'m',i,coordinates
-    return correct,'no response',i,coordinates
+            return [coordinates,correct,1,i]
+    return [coordinates,correct,0,i]
 
-def trial(numTrials,mu,sd):
-    correctResponse = ()
-    numDots = ()
-    coordinates = np.empty()
-    for i in range(numTrials+1):
+def block(numTrials,mu,sd):
+    correctResponse = []
+    numDots = []
+    coordinates = []
+    for i in range(numTrials):
         data = displayDots(mu,sd)
         correctResponse.append(data[0]==data[1])
         numDots.append(data[2])
-        np.append(coordinates,np.array(coordinates[3]))
-    return correctResponse,numDots,coordinates
+        coordinates.append(data[3])
+    return [correctResponse,numDots,coordinates]
 
-print(trial(5,25,125))
+numTrials = 5
+for i in range(5):
+    output=[pid,sid,i+1]+displayDots(25,125)
+    print(*output,sep=", ", file=fptr)
 
+
+fptr.flush()
+hz=round(win.getActualFrameRate())
+[resX,resY]=win.size
 win.close()
+
+
+#elib.stopExp(sid,hz,resX,resY,seed,dbConf)
 core.quit()
