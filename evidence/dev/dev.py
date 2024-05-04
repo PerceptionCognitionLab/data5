@@ -19,7 +19,7 @@ dbConf=elib.beta
 #[pid,sid,fname]=elib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
 [pid,sid,fname]=[1,1,'test']
 fptr=open(fname,"w")
-mu = 25
+mu = 50
 sd = 125
 numDots = 30
 dotY = 0
