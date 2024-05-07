@@ -25,29 +25,45 @@ numDots = 30
 dotY = 0
 dotRadius = 5
 
+
 win = visual.Window(units="pix", size=(500, 500), color=[-1, -1, -1], fullscr=True)
 correctSound1 = sound.Sound(500,secs = 0.25)
 correctSound2 = sound.Sound(1000,secs = 0.25)
+incorrectSound1 = sound.Sound(500,secs = 0.5)
+incorrectSound2 = sound.Sound(375,secs = 0.5)
+xAxis = visual.Line(win,start=(0,-500),end=(0,500),lineColor=[255,0,0],lineWidth=0.5)
+yAxis = visual.Line(win,start=(-1000,0),end=(1000,0),lineColor=[255,0,0],lineWidth=0.5)
 
-def playSound():
+def playCorrectSound():
     correctSound1.play()
     core.wait(0.25)
     correctSound2.play()
     core.wait(0.25)
+
+def playIncorrectSound():
+    incorrectSound1.play()
+    incorrectSound2.play()
+    core.wait(0.5)
 
 def displayDots(mu,sd,numDots,dotY,dotRadius):
     win.flip()
     core.wait(0.5)
     marker = visual.Circle(win,pos=(0,0),fillColor=[255,0,0],radius=5)
     marker.draw()
+    xAxis.draw()
+    yAxis.draw()
     win.flip()
     core.wait(0.5)
     marker = visual.Circle(win,pos=(0,0),fillColor=[255,255,0],radius=5)
     marker.draw()
+    xAxis.draw()
+    yAxis.draw()
     win.flip()
     core.wait(0.5)
     marker = visual.Circle(win,pos=(0,0),fillColor=[0,255,0],radius=5)
     marker.draw()
+    xAxis.draw()
+    yAxis.draw()
     win.flip()
     core.wait(0.5)
     neg = rng.integers(0,2)
@@ -59,6 +75,8 @@ def displayDots(mu,sd,numDots,dotY,dotRadius):
     for i in range(numDots+1):
         coordinates.append(np.round(np.random.normal(mu*(neg*2-1),sd)))
     for i in range(len(coordinates)):
+        xAxis.draw()
+        yAxis.draw()
         circ=visual.Circle(win, pos=(coordinates[i],dotY), fillColor=[1, 1, 1], radius=dotRadius)
         circ.draw()
         win.flip()
@@ -68,19 +86,19 @@ def displayDots(mu,sd,numDots,dotY,dotRadius):
             core.quit()
         if(event.getKeys(['x'])):
             if(correct == -1):
-                playSound()
+                playCorrectSound()
             return [*coordinates,correct,-1,i]
         if(event.getKeys(['m'])):
             if(correct == 1):
-                playSound()
+                playCorrectSound()
             return [*coordinates,correct,1,i]
     return [*coordinates,correct,0,i]
 
-numTrials = 5
-for i in range(numTrials):
-    output=[pid,sid,i+1]+displayDots(mu,sd,numDots,dotY,dotRadius)
-    print(*output,sep=", ", file=fptr)
-
+# numTrials = 5
+# for i in range(numTrials):
+#     output=[pid,sid,i+1]+displayDots(mu,sd,numDots,dotY,dotRadius)
+#     print(*output,sep=", ", file=fptr)
+playCorrectSound()
 
 fptr.flush()
 hz=round(win.getActualFrameRate())
