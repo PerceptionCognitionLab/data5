@@ -24,7 +24,7 @@ sd = 125
 numDots = 30
 dotY = 0
 dotRadius = 5
-
+clock = core.Clock()
 
 win = visual.Window(units="pix", size=(500, 500), color=[-1, -1, -1], fullscr=True)
 correctSound1 = sound.Sound(500,secs = 0.25)
@@ -74,6 +74,7 @@ def displayDots(mu,sd,numDots,dotY,dotRadius):
     coordinates = []
     for i in range(numDots+1):
         coordinates.append(np.round(np.random.normal(mu*(neg*2-1),sd)))
+    responseTime = clock.getTime()
     for i in range(len(coordinates)):
         xAxis.draw()
         yAxis.draw()
@@ -87,18 +88,26 @@ def displayDots(mu,sd,numDots,dotY,dotRadius):
         if(event.getKeys(['x'])):
             if(correct == -1):
                 playCorrectSound()
-            return [*coordinates,correct,-1,i]
+            else:
+                playIncorrectSound()
+            responseTime = clock.getTime()-responseTime
+            return [*coordinates,correct,-1,i,responseTime]
         if(event.getKeys(['m'])):
             if(correct == 1):
                 playCorrectSound()
-            return [*coordinates,correct,1,i]
-    return [*coordinates,correct,0,i]
+            else:
+                playIncorrectSound()
+            responseTime = clock.getTime()-responseTime
+            return [*coordinates,correct,1,i,responseTime]
+    playIncorrectSound()
+    responseTime = clock.getTime()-responseTime
+    return [*coordinates,correct,0,i,responseTime]
 
-# numTrials = 5
-# for i in range(numTrials):
-#     output=[pid,sid,i+1]+displayDots(mu,sd,numDots,dotY,dotRadius)
-#     print(*output,sep=", ", file=fptr)
-playCorrectSound()
+numTrials = 5
+for i in range(numTrials):
+    output=[pid,sid,i+1]+displayDots(mu,sd,numDots,dotY,dotRadius)
+    print(*output,sep=", ", file=fptr)
+# playCorrectSound()
 
 fptr.flush()
 hz=round(win.getActualFrameRate())
