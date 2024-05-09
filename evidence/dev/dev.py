@@ -19,8 +19,8 @@ dbConf=elib.beta
 #[pid,sid,fname]=elib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
 [pid,sid,fname]=[1,1,'test']
 fptr=open(fname,"w")
-mu = 50
-sd = 125
+mu = 10
+sd = 25
 numDots = 30
 dotY = 0
 dotRadius = 5
@@ -45,7 +45,7 @@ def playIncorrectSound():
     incorrectSound2.play()
     core.wait(0.5)
 
-def displayDots(mu,sd,numDots,dotY,dotRadius):
+def countdown():
     win.flip()
     core.wait(0.5)
     marker = visual.Circle(win,pos=(0,0),fillColor=[255,0,0],radius=5)
@@ -66,6 +66,8 @@ def displayDots(mu,sd,numDots,dotY,dotRadius):
     yAxis.draw()
     win.flip()
     core.wait(0.5)
+
+def displayDots(mu,sd,numDots,dotY,dotRadius):
     neg = rng.integers(0,2)
     if(neg == 0):
         correct = -1
@@ -75,9 +77,9 @@ def displayDots(mu,sd,numDots,dotY,dotRadius):
     for i in range(numDots+1):
         coordinates.append(np.round(np.random.normal(mu*(neg*2-1),sd)))
     responseTime = clock.getTime()
+    xAxis.draw()
+    yAxis.draw()
     for i in range(len(coordinates)):
-        xAxis.draw()
-        yAxis.draw()
         circ=visual.Circle(win, pos=(coordinates[i],dotY), fillColor=[1, 1, 1], radius=dotRadius)
         circ.draw()
         win.flip()
@@ -105,6 +107,7 @@ def displayDots(mu,sd,numDots,dotY,dotRadius):
 
 numTrials = 5
 for i in range(numTrials):
+    countdown()
     output=[pid,sid,i+1]+displayDots(mu,sd,numDots,dotY,dotRadius)
     print(*output,sep=", ", file=fptr)
 # playCorrectSound()
