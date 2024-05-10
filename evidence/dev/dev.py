@@ -12,6 +12,7 @@ rng = random.default_rng(seed)
 
 #globals
 abortKey = ['9']
+continueKey = ['Enter']
 refreshRate=165
 elib.setRefreshRate(refreshRate)
 expName="devEv"
@@ -45,6 +46,16 @@ def playIncorrectSound():
     incorrectSound2.play()
     core.wait(0.5)
 
+def ready():
+    visual.TextStim(win, text="Ready? Press any key to continue and 9 to quit.", height=30, color='white').draw()
+    win.flip()
+    while(True):
+        if(event.getKeys(abortKey)):
+            win.close()
+            core.quit()
+        if(event.getKeys()):
+            break
+
 def countdown():
     win.flip()
     core.wait(0.5)
@@ -77,13 +88,13 @@ def displayDots(mu,sd,numDots,dotY,dotRadius):
     for i in range(numDots+1):
         coordinates.append(np.round(np.random.normal(mu*(neg*2-1),sd)))
     responseTime = clock.getTime()
-    xAxis.draw()
-    yAxis.draw()
     for i in range(len(coordinates)):
+        xAxis.draw()
+        yAxis.draw()
         circ=visual.Circle(win, pos=(coordinates[i],dotY), fillColor=[1, 1, 1], radius=dotRadius)
         circ.draw()
         win.flip()
-        core.wait(.3)
+        core.wait(.2)
         if(event.getKeys(abortKey)):
             win.close()
             core.quit()
@@ -92,25 +103,27 @@ def displayDots(mu,sd,numDots,dotY,dotRadius):
                 playCorrectSound()
             else:
                 playIncorrectSound()
-            responseTime = clock.getTime()-responseTime
+            responseTime = round(clock.getTime()-responseTime,3)
             return [*coordinates,correct,-1,i,responseTime]
         if(event.getKeys(['m'])):
             if(correct == 1):
                 playCorrectSound()
             else:
                 playIncorrectSound()
-            responseTime = clock.getTime()-responseTime
+            responseTime = round(clock.getTime()-responseTime,3)
             return [*coordinates,correct,1,i,responseTime]
     playIncorrectSound()
-    responseTime = clock.getTime()-responseTime
+    responseTime = round(clock.getTime()-responseTime,3)
     return [*coordinates,correct,0,i,responseTime]
 
-numTrials = 5
-for i in range(numTrials):
-    countdown()
-    output=[pid,sid,i+1]+displayDots(mu,sd,numDots,dotY,dotRadius)
-    print(*output,sep=", ", file=fptr)
-# playCorrectSound()
+numBlocks = 5
+numTrials = 2
+for j in range(numBlocks):
+    ready()
+    for i in range(numTrials):
+        countdown()
+        output=[pid,sid,j+1,i+1]+displayDots(mu,sd,numDots,dotY,dotRadius)
+        print(*output,sep=", ", file=fptr)
 
 fptr.flush()
 hz=round(win.getActualFrameRate())
