@@ -25,6 +25,7 @@ sd = 25
 numDots = 30
 dotY = 0
 dotRadius = 5
+dotInterval = 0.2
 clock = core.Clock()
 
 win = visual.Window(units="pix", size=(500, 500), color=[-1, -1, -1], fullscr=True)
@@ -78,6 +79,44 @@ def countdown():
     win.flip()
     core.wait(0.5)
 
+# def displayDots(mu,sd,numDots,dotY,dotRadius):
+#     neg = rng.integers(0,2)
+#     if(neg == 0):
+#         correct = -1
+#     else:
+#         correct = 1
+#     coordinates = []
+#     for i in range(numDots+1):
+#         coordinates.append(np.round(np.random.normal(mu*(neg*2-1),sd)))
+#     responseTime = clock.getTime()
+#     for i in range(len(coordinates)):
+#         xAxis.draw()
+#         yAxis.draw()
+#         circ=visual.Circle(win, pos=(coordinates[i],dotY), fillColor=[1, 1, 1], radius=dotRadius)
+#         circ.draw()
+#         win.flip()
+#         core.wait(dotInterval)
+#         if(event.getKeys(abortKey)):
+#             win.close()
+#             core.quit()
+#         if(event.getKeys(['x'])):
+#             if(correct == -1):
+#                 playCorrectSound()
+#             else:
+#                 playIncorrectSound()
+#             responseTime = round(clock.getTime()-responseTime,3)
+#             return [*coordinates,correct,-1,i,responseTime]
+#         if(event.getKeys(['m'])):
+#             if(correct == 1):
+#                 playCorrectSound()
+#             else:
+#                 playIncorrectSound()
+#             responseTime = round(clock.getTime()-responseTime,3)
+#             return [*coordinates,correct,1,i,responseTime]
+#     playIncorrectSound()
+#     responseTime = round(clock.getTime()-responseTime,3)
+#     return [*coordinates,correct,0,i,responseTime]
+
 def displayDots(mu,sd,numDots,dotY,dotRadius):
     neg = rng.integers(0,2)
     if(neg == 0):
@@ -87,36 +126,37 @@ def displayDots(mu,sd,numDots,dotY,dotRadius):
     coordinates = []
     for i in range(numDots+1):
         coordinates.append(np.round(np.random.normal(mu*(neg*2-1),sd)))
-    responseTime = clock.getTime()
     for i in range(len(coordinates)):
-        xAxis.draw()
-        yAxis.draw()
         circ=visual.Circle(win, pos=(coordinates[i],dotY), fillColor=[1, 1, 1], radius=dotRadius)
-        circ.draw()
-        win.flip()
-        core.wait(.2)
-        if(event.getKeys(abortKey)):
-            win.close()
-            core.quit()
-        if(event.getKeys(['x'])):
-            if(correct == -1):
-                playCorrectSound()
-            else:
-                playIncorrectSound()
-            responseTime = round(clock.getTime()-responseTime,3)
-            return [*coordinates,correct,-1,i,responseTime]
-        if(event.getKeys(['m'])):
-            if(correct == 1):
-                playCorrectSound()
-            else:
-                playIncorrectSound()
-            responseTime = round(clock.getTime()-responseTime,3)
-            return [*coordinates,correct,1,i,responseTime]
+        frame = visual.BufferImageStim(win,stim=[xAxis,yAxis,circ])
+        currentFrame = 0
+        clock.reset()
+        for currentFrame in range(round(refreshRate*dotInterval)):
+            responseTime = round(clock.getTime(),3)
+            if(event.getKeys(abortKey)):
+                win.close()
+                core.quit()
+            if(event.getKeys(['x'])):
+                if(correct == -1):
+                    playCorrectSound()
+                else:
+                    playIncorrectSound()
+                print(currentFrame)
+                return [*coordinates,correct,-1,i,responseTime]
+            if(event.getKeys(['m'])):
+                if(correct == 1):
+                    playCorrectSound()
+                else:
+                    playIncorrectSound()
+                print(currentFrame)
+                return [*coordinates,correct,1,i,responseTime]
+            frame.draw()
+            win.flip()
     playIncorrectSound()
-    responseTime = round(clock.getTime()-responseTime,3)
+    print(currentFrame)
     return [*coordinates,correct,0,i,responseTime]
 
-numBlocks = 5
+numBlocks = 2
 numTrials = 2
 for j in range(numBlocks):
     ready()
