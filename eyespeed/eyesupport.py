@@ -19,8 +19,6 @@ def save_letter_image(letter, filename):
 
 # Save the letter 'M'
 save_letter_image('M', 'testM.png')
-
-# Save the letter 'W'
 save_letter_image('W', 'testW.png')
 save_letter_image('A', 'testA.png')
 save_letter_image('O', 'testO.png')
