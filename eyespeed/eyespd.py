@@ -68,21 +68,22 @@ def doTrial(numTrials):
     chosen_letter_array = []
     correct_array = []
     correct = False
-    stddev = 6
+    stddev = 3
     c = 0
     for i in range(numTrials):
         if correct:
             c = c + 1
+            if c == 2:
+                stddev = stddev + 1
+                c = 0
         else:
             stddev = stddev - 1
             if stddev < 1:
                 stddev = 1
-        if c == 2:
-            stddev = stddev + 1
-            c = 0
+        
 
         chosen_letter = rand_ltr(win, duration=2, stddev = stddev)
-        print(stddev)
+        print('Noise as a function of standard deviation per trial:',stddev)
         correct = getresponse(win, chosen_letter)
         chosen_letter_array.append(chosen_letter)
         correct_array.append(correct)
