@@ -1,11 +1,28 @@
 import numpy as np
 from numpy import random
-from psychopy import core, visual, event
+from psychopy import core, visual, event, sound
 from PIL import Image
 import sys
 import os
 import time
 
+#globals
+
+correctSound1 = sound.Sound(500,secs = 0.25)
+correctSound2 = sound.Sound(1000,secs = 0.25)
+incorrectSound1 = sound.Sound(500,secs = 0.5)
+incorrectSound2 = sound.Sound(375,secs = 0.5)
+
+def playCorrectSound():
+    correctSound1.play()
+    core.wait(0.25)
+    correctSound2.play()
+    core.wait(0.25)
+
+def playIncorrectSound():
+    incorrectSound1.play()
+    incorrectSound2.play()
+    core.wait(0.5)
 
 # Initialize random number generator
 
@@ -52,8 +69,10 @@ def getresponse(win, chosen_letter):
     correct = responseupper == chosen_letter
 
     if correct:
+        playCorrectSound()
         feedback_text = "That's correct"
     else:
+        playIncorrectSound()
         feedback_text = "That's incorrect"
 
     feedback = visual.TextStim(win, text=feedback_text, color=[1, 1, 1], height = 40)
@@ -64,37 +83,43 @@ def getresponse(win, chosen_letter):
 
 # Run the test
 
-def doTrial(numTrials):
-    chosen_letter_array = []
-    correct_array = []
-    correct = False
-    stddev = 3
-    c = 0
-    for i in range(numTrials):
-        if correct:
-            c = c + 1
-            if c == 2:
-                stddev = stddev + 1
-                c = 0
-        else:
-            stddev = stddev - 1
+def doTrial(numTrials,block):
+    for blk in range(block):
+        prompt = visual.TextStim(win, text="Press any key to continue", color=[1, 1, 1], height = 40)
+        prompt.draw()
+        win.flip()
+        keys = event.waitKeys()
+        chosen_letter_array = []
+        correct_array = []
+        correct = False
+        stddev = 3
+        c = 0
+        for i in range(numTrials):
+            if correct:
+                c = c + 1
+                if c == 2:
+                    stddev = stddev + 1
+                    c = 0
+            else:
+                stddev = stddev - 1
             if stddev < 1:
                 stddev = 1
         
 
-        chosen_letter = rand_ltr(win, duration=2, stddev = stddev)
-        print('Noise as a function of standard deviation per trial:',stddev)
-        correct = getresponse(win, chosen_letter)
-        chosen_letter_array.append(chosen_letter)
-        correct_array.append(correct)
-        print('Randomly chosen letter:', chosen_letter)
-        print('Correct response:', correct)
+            chosen_letter = rand_ltr(win, duration=2, stddev = stddev)
+            print('Noise as a function of standard deviation per trial:',stddev)
+            correct = getresponse(win, chosen_letter)
+            chosen_letter_array.append(chosen_letter)
+            correct_array.append(correct)
+            print('Randomly chosen letter:', chosen_letter)
+            print('Correct response:', correct)
     return chosen_letter_array, correct_array
 
 
 numTrials = 5
+block = 2
 
-chosen_letter_array, correct_array = doTrial(numTrials)
+chosen_letter_array, correct_array = doTrial(numTrials,block)
 print('Chosen letter array:', chosen_letter_array)
 print('Response correctness:', correct_array)
 win.close()
