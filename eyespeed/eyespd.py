@@ -1,17 +1,21 @@
+import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-from scipy.fft import fft2, ifft2
+from scipy.fft import fftn, ifftn
 from numpy import random
 from psychopy import core, visual, event, sound
 from PIL import Image
+import os
 
 # Globals
-
+abortKey = ['9']
 correctSound1 = sound.Sound(500, secs=0.25)
 correctSound2 = sound.Sound(1000, secs=0.25)
 incorrectSound1 = sound.Sound(500, secs=0.5)
 incorrectSound2 = sound.Sound(375, secs=0.5)
+rng = np.random.default_rng(seed=np.random.randint(1, 1000))
+win = visual.Window(units="pix", size=(1920, 1080), color=[-1, -1, -1], fullscr=True)
 
+# Functions
 def playCorrectSound():
     correctSound1.play()
     core.wait(0.25)
@@ -23,50 +27,41 @@ def playIncorrectSound():
     core.wait(0.5)
     incorrectSound2.play()
 
-# Initialize random number generator
+def rand_ltr(win, duration=2, noise_std=1):
+    m = np.array(Image.open('testM.png').convert('L')) / 255
+    w = np.array(Image.open('testW.png').convert('L')) / 255
+    a = np.array(Image.open('testA.png').convert('L')) / 255
+    o = np.array(Image.open('testO.png').convert('L')) / 255
 
-rng = np.random.default_rng(seed=np.random.randint(1, 1000))
+    letters = {'a': a, 'w': w, 'm': m, 'o': o}
 
-# Window
+    chosen_letter = rng.choice(list(letters.keys()))
+    chosen_image = letters[chosen_letter]
+    other_image = rng.choice(list(letters.values()))
+    image2 = rng.choice(list(letters.keys()))
 
-win = visual.Window(units="pix", size=(750, 750), color=[-1, -1, -1], fullscr=True)
-
-# Noise Function
-
-def add_noise(chosen_ltr_image, image2, deltaFft):
+    d = chosen_image.shape
     weight = 0.5
-    g1 = fft2(chosen_ltr_image)
-    g2 = fft2(image2)
+
+    g1 = fftn(chosen_image)
+    g2 = fftn(other_image)
+
     power = (weight * np.abs(g1) + (1 - weight) * np.abs(g2))
-    N = len(chosen_ltr_image)
-    d = chosen_ltr_image.shape
-    noise = np.random.normal(0, 1, d) 
-    gNoise = fft2(noise)
-    noisy_image = np.real(ifft2(gNoise * power)) / N
-    return noisy_image
+    noise = np.random.normal(loc=0, scale=noise_std, size=d)
+    gNoise = fftn(noise)
+    fNoise = np.real(ifftn(gNoise * power))
+    stimuli = fNoise + 50 * chosen_image
 
-# Function to draw a random monochrome letter
-
-def rand_ltr(win, duration=2, deltaFft=1):
-    mono_W = np.flip(np.array(Image.open('testW.png').convert("L"))) / 255.0
-    mono_A = np.flip(np.array(Image.open('testA.png').convert("L"))) / 255.0
-    mono_M = np.flip(np.array(Image.open('testM.png').convert("L"))) / 255.0
-    mono_O = np.flip(np.array(Image.open('testO.png').convert("L"))) / 255.0
-    letters = [("A", mono_A), ("W", mono_W), ("M", mono_M), ("O", mono_O)]
-    select1 = rng.integers(0, 4)
-    select2 = rng.integers(0, 4)
-    chosen_letter, chosen_ltr_image = letters[1]
-    _, image2 = letters[2]
-    noisy_image = add_noise(chosen_ltr_image, image2, deltaFft)
-    presentedImage = chosen_ltr_image + noisy_image
-    presentedImage = np.clip(presentedImage, 0, 1)  
-    stim = visual.ImageStim(win, image=presentedImage)
+    temp_image_path = "temp_stimulus.png"
+    plt.imsave(temp_image_path, stimuli, cmap='gray')
+    stim = visual.ImageStim(win, image=temp_image_path, size=(800, 600))
     stim.draw()
     win.flip()
     core.wait(duration)
-    return chosen_letter
 
-# Function to get the response
+    os.remove(temp_image_path)
+
+    return chosen_letter, image2
 
 def getresponse(win, chosen_letter):
     prompt = visual.TextStim(win, text="What letter did you see?", color=[1, 1, 1], height=40)
@@ -74,9 +69,8 @@ def getresponse(win, chosen_letter):
     win.flip()
     keys = event.waitKeys(keyList=['a', 'w', 'm', 'o'])
     response = keys[0] if keys else None
-    responseupper = response.upper() if response else None
     
-    correct = responseupper == chosen_letter
+    correct = response == chosen_letter
 
     if correct:
         playCorrectSound()
@@ -91,46 +85,53 @@ def getresponse(win, chosen_letter):
     core.wait(2)
     return correct
 
-
-def doTrial(numTrials, block, initial_deltaFft):
+def doTrial(numTrials, block, noise_std):
     for blk in range(block):
         prompt = visual.TextStim(win, text="Press any key to continue", color=[1, 1, 1], height=40)
         prompt.draw()
         win.flip()
         event.waitKeys()
-        chosen_letter_array = []
-        correct_array = []
-        deltaFft = initial_deltaFft
-        consecutive_correct = 0
         
-        for _ in range(numTrials):
-            chosen_letter = rand_ltr(win, duration=2, deltaFft=deltaFft)
-            print('Noise deltaFft:', deltaFft)
+        chosen_letter_array = []
+        image2_array = []
+        correct_array = []
+        std_array = []
+        noise_std = 1.5
+        consecutive_correct = 0
+        deltaStd = 0.25
+
+        for trl in range(numTrials):
+            chosen_letter, image2 = rand_ltr(win, duration=2, noise_std=noise_std)
             correct = getresponse(win, chosen_letter)
             chosen_letter_array.append(chosen_letter)
             correct_array.append(correct)
-            print('Randomly chosen letter:', chosen_letter)
-            print('Correct response:', correct)
-            
+            std_array.append(noise_std)
+            image2_array.append(image2)
+         
             if correct:
                 consecutive_correct += 1
                 if consecutive_correct == 2:
-                    deltaFft *= np.sqrt(2)
+                    noise_std += deltaStd
                     consecutive_correct = 0
             else:
                 consecutive_correct = 0
-                deltaFft /= np.sqrt(2)
-                
-            deltaFft = max(deltaFft, 1)  
+                noise_std -= deltaStd
 
-    return chosen_letter_array, correct_array
+            noise_std = max(noise_std, 1)
 
-numTrials = 2
+    return chosen_letter_array, correct_array, std_array, image2_array
+
+
+numTrials = 10
 block = 1
-initial_deltaFft = 1
 
-chosen_letter_array, correct_array = doTrial(numTrials, block, initial_deltaFft)
-print('Chosen letter array:', chosen_letter_array)
-print('Response correctness:', correct_array)
-win.close()
+chosen_letter_array, correct_array, std_array, image2_array = doTrial(numTrials, block, noise_std=1)
+print("##################################")
+print("First Image:", chosen_letter_array)
+print("Second Image:", image2_array)
+print("Correct responses:", correct_array)
+print("Standard deviation by trial:", std_array)
+print("##################################")
 core.quit()
+
+a = event.waitKeys(keyList=abortKey)
