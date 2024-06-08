@@ -28,10 +28,10 @@ def playIncorrectSound():
     incorrectSound2.play()
 
 def rand_ltr(win, duration=2, noise_std=1):
-    m = np.array(Image.open('testM.png').convert('L')) / 255
-    w = np.array(Image.open('testW.png').convert('L')) / 255
-    a = np.array(Image.open('testA.png').convert('L')) / 255
-    o = np.array(Image.open('testO.png').convert('L')) / 255
+    m = np.array(Image.open('car2.png').convert('L')) / 255
+    w = np.array(Image.open('boot2.png').convert('L')) / 255
+    a = np.array(Image.open('house2.png').convert('L')) / 255
+    o = np.array(Image.open('apple2.png').convert('L')) / 255
 
     letters = {'a': a, 'w': w, 'm': m, 'o': o}
 
@@ -41,8 +41,7 @@ def rand_ltr(win, duration=2, noise_std=1):
     image2 = rng.choice(list(letters.keys()))
 
     d = chosen_image.shape
-    weight = 0.5
-
+    weight = round(rng.uniform(.25,.75), 4)
     g1 = fftn(chosen_image)
     g2 = fftn(other_image)
 
@@ -54,6 +53,11 @@ def rand_ltr(win, duration=2, noise_std=1):
 
     temp_image_path = "temp_stimulus.png"
     plt.imsave(temp_image_path, stimuli, cmap='gray')
+
+    fix = visual.TextStim(win, "+") 
+    fix.draw()
+    win.flip()
+    core.wait(.5)
     stim = visual.ImageStim(win, image=temp_image_path, size=(800, 600))
     stim.draw()
     win.flip()
@@ -61,10 +65,10 @@ def rand_ltr(win, duration=2, noise_std=1):
 
     os.remove(temp_image_path)
 
-    return chosen_letter, image2
+    return chosen_letter, image2, weight
 
 def getresponse(win, chosen_letter):
-    prompt = visual.TextStim(win, text="What letter did you see?", color=[1, 1, 1], height=40)
+    prompt = visual.TextStim(win, text="What image did you see?", color=[1, 1, 1], height=40)
     prompt.draw()
     win.flip()
     keys = event.waitKeys(keyList=['a', 'w', 'm', 'o'])
@@ -96,17 +100,19 @@ def doTrial(numTrials, block, noise_std):
         image2_array = []
         correct_array = []
         std_array = []
-        noise_std = 1.5
+        weights = []
+        noise_std = .35
         consecutive_correct = 0
-        deltaStd = 0.25
+        deltaStd = 0.20
 
         for trl in range(numTrials):
-            chosen_letter, image2 = rand_ltr(win, duration=2, noise_std=noise_std)
+            chosen_letter, image2, weight = rand_ltr(win, duration=2, noise_std=noise_std)
             correct = getresponse(win, chosen_letter)
             chosen_letter_array.append(chosen_letter)
             correct_array.append(correct)
             std_array.append(noise_std)
             image2_array.append(image2)
+            weights.append(weight)
          
             if correct:
                 consecutive_correct += 1
@@ -117,20 +123,23 @@ def doTrial(numTrials, block, noise_std):
                 consecutive_correct = 0
                 noise_std -= deltaStd
 
-            noise_std = max(noise_std, 1)
+            if noise_std <= .35:
+                noise_std = .35
 
-    return chosen_letter_array, correct_array, std_array, image2_array
+
+    return chosen_letter_array, correct_array, std_array, image2_array, weights
 
 
 numTrials = 10
 block = 1
 
-chosen_letter_array, correct_array, std_array, image2_array = doTrial(numTrials, block, noise_std=1)
+chosen_letter_array, correct_array, std_array, image2_array, weights = doTrial(numTrials, block, noise_std=1)
 print("##################################")
 print("First Image:", chosen_letter_array)
 print("Second Image:", image2_array)
 print("Correct responses:", correct_array)
 print("Standard deviation by trial:", std_array)
+print("Weights by trial:", weights)
 print("##################################")
 core.quit()
 
