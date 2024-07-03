@@ -14,6 +14,7 @@ incorrectSound1 = sound.Sound(500, secs=0.5)
 incorrectSound2 = sound.Sound(375, secs=0.5)
 rng = np.random.default_rng(seed=np.random.randint(1, 1000))
 win = visual.Window(units="pix", size=(1920, 1080), color=[-1, -1, -1], fullscr=True)
+clock = core.Clock()
 
 # Functions
 def playCorrectSound():
@@ -28,10 +29,10 @@ def playIncorrectSound():
     incorrectSound2.play()
 
 def rand_ltr(win, duration=2, noise_std=1):
-    m = np.array(Image.open('car2.png').convert('L')) / 255
-    w = np.array(Image.open('boot2.png').convert('L')) / 255
-    a = np.array(Image.open('house2.png').convert('L')) / 255
-    o = np.array(Image.open('apple2.png').convert('L')) / 255
+    m = np.array(Image.open('testM.png').convert('L')) / 255
+    w = np.array(Image.open('testW.png').convert('L')) / 255
+    a = np.array(Image.open('testA.png').convert('L')) / 255
+    o = np.array(Image.open('testO.png').convert('L')) / 255
 
     letters = {'a': a, 'w': w, 'm': m, 'o': o}
 
@@ -101,7 +102,7 @@ def doTrial(numTrials, block, noise_std):
         correct_array = []
         std_array = []
         weights = []
-        noise_std = .35
+        noise_std = 1.5
         consecutive_correct = 0
         deltaStd = 0.20
 
@@ -113,6 +114,7 @@ def doTrial(numTrials, block, noise_std):
             std_array.append(noise_std)
             image2_array.append(image2)
             weights.append(weight)
+           
          
             if correct:
                 consecutive_correct += 1
@@ -123,14 +125,14 @@ def doTrial(numTrials, block, noise_std):
                 consecutive_correct = 0
                 noise_std -= deltaStd
 
-            if noise_std <= .35:
-                noise_std = .35
+            if noise_std <= 1:
+                noise_std = 1
 
 
     return chosen_letter_array, correct_array, std_array, image2_array, weights
 
 
-numTrials = 10
+numTrials = 3
 block = 1
 
 chosen_letter_array, correct_array, std_array, image2_array, weights = doTrial(numTrials, block, noise_std=1)
