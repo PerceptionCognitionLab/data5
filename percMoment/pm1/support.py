@@ -99,6 +99,14 @@ def stairCase(soa,correct,correctPrevious,increment):
 		soa=1
 	return ([soa,cv]) 
 
+def maskStairCase(soa,correct,correctPrevious,increment):
+	if (correct or not correct):
+		soa = soa - 1
+		cv = 0
+	if (soa==0):
+		soa=1
+	return ([soa,cv]) 
+
 def instruct(win, mouse,message,advance='mouse'):
 
 	text_height = 35  
