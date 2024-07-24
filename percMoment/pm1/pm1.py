@@ -31,8 +31,8 @@ random.seed(seed)
 
 fix 	= visual.TextStim(win, "+")  # fixation cross
 blank = visual.TextStim(win, "")  # blank window
-int_trial = 1
-mask_trial = 1
+int_trial = 10
+mask_trial = 10
 
 gPar0={
 	'spacing' : 48,
