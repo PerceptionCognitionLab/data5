@@ -100,12 +100,8 @@ def stairCase(soa,correct,correctPrevious,increment):
 	return ([soa,cv]) 
 
 def maskStairCase(soa,correct,correctPrevious,increment):
-	if (correct or not correct):
-		soa = soa - 1
-		cv = 0
-	if (soa==0):
-		soa=1
-	return ([soa,cv]) 
+	soa = random.randint(soa-3,soa+3)
+	return ([soa]) 
 
 def instruct(win, mouse,message,advance='mouse'):
 
