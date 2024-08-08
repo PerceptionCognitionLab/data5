@@ -25,7 +25,7 @@ initial_amplitude_diff_fraction = 0.5  # Initial amplitude difference as a fract
 minimum_amplitude_diff_fraction = 0.1  # Minimum amplitude difference as a fraction
 tone_duration = 0.4  # Duration of each tone in seconds
 silence_duration = 0.2  # Duration of silence between tones
-max_trials = 5  # Maximum number of trials
+max_trials = 10  # Maximum number of trials
 
 # Instructions
 instructions = visual.TextStim(win, text="In this experiment, you will be presented with two tones.\n"
@@ -73,7 +73,10 @@ for trial in range(max_trials):
         participant_response = int(participant_response)
 
     # Save data
-    data_file.write(f'{trial},{first_tone_amp},{second_tone_amp},{correct_response},{participant_response},{rt}\n')
+    data_filename = f'subject_{sid}_data.csv'
+    data_file = open(data_filename, 'w', newline='')
+    csv_writer = csv.writer(data_file)
+    csv_writer.writerow(['Trial', 'FirstToneAmplitude', 'SecondToneAmplitude', 'CorrectResponse', 'ParticipantResponse', 'RT'])
 
     # Feedback
     if participant_response == correct_response:
