@@ -74,6 +74,7 @@ for trial in range(max_trials):
 
     # Save data
     data_file.write(f'{trial},{first_tone_amp},{second_tone_amp},{correct_response},{participant_response},{rt}\n')
+    print(data_file)
 
     # Feedback
     if participant_response == correct_response:
