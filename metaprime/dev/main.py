@@ -1,4 +1,11 @@
-from psychopy import visual, core, event, data, gui, logging
+from psychopy import prefs
+prefs.hardware['audioLib']=['PTB']
+prefs.hardware['audioLatencyMode']=3
+from psychopy import core, visual, sound, event
+import numpy as np
+import sys
+sys.path.insert(0, '/home/exp/specl-exp/lib/data5/')
+import expLib51 as el
 import random
 
 # Set up the window
