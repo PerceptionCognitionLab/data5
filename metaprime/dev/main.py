@@ -9,25 +9,27 @@ import os
 prefs.hardware['audioLib']=['PTB']
 prefs.hardware['audioLatencyMode']=3
 
-# Set up the window
-win = visual.Window(units="pix", size=(500, 500), color='grey', fullscr=False)
-
 # Housekeeping
 # region
 refreshRate=165
 exlib.setRefreshRate(refreshRate)
 trialClock=core.Clock()
-expName="Metaprime"
-dbConf=exlib.data5
-[pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=False,refreshRate=refreshRate)
+expName="devmp1"
+dbConf=exlib.beta
 seed = random.randrange(1e6)
+# [pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=False,refreshRate=refreshRate)
+fname = 'test.dat'
+fptr = open(fname,'w')
 # endregion
+
+# Set up the window
+win = visual.Window(units="pix", size=(500, 500), color='grey', fullscr=False)
 
 # Experiment settings
 # region
 num_blocks = 3
 n_trials_per_condition = 5
-ISI_frames = [2, 4, 6, 8, 10, 12]
+ISI_frames = [0, 2, 4, 6, 8, 10, 12]
 # endregion
 
 # Define stimuli: primes, masks
@@ -87,7 +89,6 @@ def run_trial(prime_direction, mask_direction, ISI, position):
     trialClock.reset()
     keys = event.waitKeys(maxWait=1.5, keyList=['left', 'right'], timeStamped=trialClock)
 
-
     # Check if the response was correct
     if keys:
         key, rt = keys[0]
@@ -97,15 +98,9 @@ def run_trial(prime_direction, mask_direction, ISI, position):
     trial_num += 1
 
     # Return trial result
-    return {
-        'prime': prime_direction,
-        'mask': mask_direction,
-        'ISI_duration': np.round(ISI * 0.006,3),
-        'position': position,
-        'response': key,
-        'rt': np.round(rt,3) if rt != None else rt,
-        'correct': correct
-    }
+    # Prime_direction, mask_direction, ISI_duration, position, response, rt, correct
+    output = [prime_direction, mask_direction, np.round(ISI * 0.006,3), position, key, np.round(rt,3) if rt != None else rt, correct]
+    print(*output, sep=',', file=fptr)
 
 # Define a function to run a block of trials
 def run_block(n_trials_per_condition, ISI_frames):
@@ -121,24 +116,23 @@ def run_block(n_trials_per_condition, ISI_frames):
     # Shuffle and repeat trials for each condition
     trial_list = conditions * n_trials_per_condition
     random.shuffle(trial_list)
-    block_results = []
 
     # Run each trial in the block
     for trial in trial_list:
         # Check for escape key to quit
         if 'escape' in event.getKeys():
-            return block_results, True  # Return results and signal to quit
+            return True  # Return results and signal to quit
 
         # Run the trial and collect results
-        result = run_trial(
+        run_trial(
             prime_direction=trial['prime'],
             mask_direction=trial['mask'],
             ISI=trial['ISI'],
             position=trial['position']
         )
-        block_results.append(result)
 
-    return block_results, False  # Return results and signal to continue
+
+    return False  # Return results and signal to continue
 
 # Define a function to run the full experiment with multiple blocks
 def run_experiment(num_blocks, n_trials_per_condition, ISI_frames):
@@ -148,9 +142,7 @@ def run_experiment(num_blocks, n_trials_per_condition, ISI_frames):
         print(f"Running Block {block_num + 1}...")
 
         # Run a block of trials
-        block_results, quit_experiment = run_block(n_trials_per_condition, ISI_frames)
-        all_results.extend(block_results)
-
+        quit_experiment = run_block(n_trials_per_condition, ISI_frames)
         if quit_experiment:
             print("Experiment quit by user.")
             break  # Stop experiment if quit signal received
@@ -176,13 +168,15 @@ goodbye_text.draw()
 win.flip()
 event.waitKeys(keyList=['space'])
 # Record settings and close the window
+'''
 hz=round(win.getActualFrameRate())
 [resX,resY]=win.size
-#exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
+exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
+'''
 win.close()
-#os.system('cat *.dat >all.dat')
+# Get everything in the store file and close the file
+fptr.flush()
+os.system('cat *.dat >all.dat')
 # endregion
 
-# Print results to the console
-for result in all_results:
-    print(result)
+

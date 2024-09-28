@@ -126,11 +126,11 @@ def displayDots(mu,sd,numDots,dotY,dotRadius):
     coordinates = []
     for i in range(numDots+1):
         coordinates.append(np.round(np.random.normal(mu*(neg*2-1),sd)))
+    clock.reset()
     for i in range(len(coordinates)):
         circ=visual.Circle(win, pos=(coordinates[i],dotY), fillColor=[1, 1, 1], radius=dotRadius)
         frame = visual.BufferImageStim(win,stim=[xAxis,yAxis,circ])
         currentFrame = 0
-        clock.reset()
         for currentFrame in range(round(refreshRate*dotInterval)):
             responseTime = round(clock.getTime(),3)
             if(event.getKeys(abortKey)):
@@ -154,6 +154,7 @@ def displayDots(mu,sd,numDots,dotY,dotRadius):
             win.flip()
     playIncorrectSound()
     print(currentFrame)
+    print(round(refreshRate*dotInterval))
     return [*coordinates,correct,0,i,responseTime]
 
 numBlocks = 2
