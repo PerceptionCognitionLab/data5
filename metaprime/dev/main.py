@@ -60,9 +60,8 @@ blank = visual.TextStim(win, "")
 #endregion
 
 # Define a function for a single trial
-def run_trial(prime_direction, mask_direction, ISI, position): 
+def run_trial(trial_num, prime_direction, mask_direction, ISI, position): 
     # Set the orientation of the prime used in this trial
-    trial_num = 0
     prime = prime_left if prime_direction == 'left' else prime_right
     mask_outer = mask_left if mask_direction == 'left' else mask_right
     
@@ -76,14 +75,19 @@ def run_trial(prime_direction, mask_direction, ISI, position):
     mask = visual.BufferImageStim(win,stim=[mask_outer, mask_inner])
     
     # Run frames
-    frames = [fixation, prime, blank, mask]
-    frameDurations = [120, 2, ISI, 20]
-    stamps=exlib.runFrames(win,frames,frameDurations,trialClock)
-    critTime=exlib.actualFrameDurations(frameDurations,stamps)[2]
-    critPass=(np.absolute((ISI/refreshRate)-critTime)<.001)
-    if not critPass:
-        print('Critical pass fail at trial ' +str(trial_num)+' : while critical time is '+str(np.round(critTime,4))+
-               ', actual time is '+str(np.round(ISI/refreshRate,4)))
+    if ISI != 0:
+        frames = [fixation, prime, blank, mask]
+        frameDurations = [120, 2, ISI, 20]
+        stamps=exlib.runFrames(win,frames,frameDurations,trialClock)
+        critTime=exlib.actualFrameDurations(frameDurations,stamps)[2]
+        critPass=(np.absolute((ISI/refreshRate)-critTime)<.001)
+        if not critPass:
+            print('Critical pass fail at trial ' +str(trial_num)+' : while critical time is '+str(np.round(critTime,4))+
+                ', actual time is '+str(np.round(ISI/refreshRate,4)))
+    else:
+        frames = [fixation, prime, mask]
+        frameDurations = [120, 2, 20]
+        stamps=exlib.runFrames(win,frames,frameDurations,trialClock)
 
     # Record the reaction time and wait for response for at most 1.5s
     trialClock.reset()
@@ -93,9 +97,9 @@ def run_trial(prime_direction, mask_direction, ISI, position):
     if keys:
         key, rt = keys[0]
         correct = (key == mask_direction)
+        # correct = (key == prime_direction)
     else:
         key, rt, correct = None, None, False  # No response is considered incorrect
-    trial_num += 1
 
     # Return trial result
     # Prime_direction, mask_direction, ISI_duration, position, response, rt, correct
@@ -106,6 +110,9 @@ def run_trial(prime_direction, mask_direction, ISI, position):
 def run_block(n_trials_per_condition, ISI_frames):
     # Generate trial conditions
     conditions = []
+    # Count on trial number
+    trial_num = 0
+    #Collect all conditions and shuffle
     for ISI in ISI_frames:
         for position in ['top', 'bottom']:
             conditions.append({'prime': 'left', 'mask': 'left', 'ISI': ISI, 'position': position})
@@ -122,9 +129,10 @@ def run_block(n_trials_per_condition, ISI_frames):
         # Check for escape key to quit
         if 'escape' in event.getKeys():
             return True  # Return results and signal to quit
-
+        trial_num += 1
         # Run the trial and collect results
         run_trial(
+            trial_num = trial_num,
             prime_direction=trial['prime'],
             mask_direction=trial['mask'],
             ISI=trial['ISI'],
