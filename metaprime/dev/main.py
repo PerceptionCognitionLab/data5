@@ -22,8 +22,9 @@ fname = 'test.dat'
 fptr = open(fname,'w')
 # endregion
 
+
 # Set up the window
-win = visual.Window(units="pix", size=(500, 500), color='grey', fullscr=False)
+win = visual.Window(units="pix", size=(1920, 1080), color='black', fullscr=True)
 
 # Experiment settings
 # region
@@ -35,27 +36,32 @@ ISI_frames = [0, 2, 4, 6, 8, 10, 12]
 # Define stimuli: primes, masks
 #region
 prime_left = visual.ShapeStim(
-    win=win, vertices=[(-30, 10), (30, 10), (30, -10), (-30, -10), (-50, 0)],
-    fillColor="black", lineColor="black", size=1)
-prime_right = visual.ShapeStim(
-    win=win, vertices=[(-30, 10), (30, 10), (50, 0), (30, -10), (-30, -10)],
-    fillColor="black", lineColor="black", size=1)
-mask_left = visual.ShapeStim(
-    win=win, vertices=[(-60, 20), (60, 20), (60, -20), (-60, -20), (-80, 0)],
-    fillColor="black", lineColor="black", size=1)
-mask_right = visual.ShapeStim(
-    win=win, vertices=[(-60, 20), (60, 20), (80, 0), (60, -20), (-60, -20)],
-    fillColor="black", lineColor="black", size=1)
-mask_inner = visual.ShapeStim(
-    win=win, vertices=[(-50, 10), (50, 10), (50, -10), (-50, -10)],
+    win=win, vertices=[(-105,0),(-100,30),(105,30),(75,0),(105,-30),(-75,-30)],
     fillColor="white", lineColor="white", size=1)
+prime_right = visual.ShapeStim(
+    win=win, vertices=[(-75,0),(-105,30),(75,30),(105,0),(75,-30),(-105,-30)],
+    fillColor="white", lineColor="white", size=1)
+mask_left = visual.ShapeStim(
+    win=win, vertices=[(-165, 0), (-120, 45), (120, 45), (120, -45), (-120, -45)],
+    fillColor="white", lineColor="white", size=1)
+mask_right = visual.ShapeStim(
+    win=win, vertices=[(-120, 45), (120, 45), (165,0), (120, -45), (-120, -45)],
+    fillColor="white", lineColor="white", size=1)
+mask_inner = visual.ShapeStim(
+    win=win, vertices=[(-105,30),(105,30),(90,15),(105,0),(90,-15),(105,-30),(-105,-30),(-90,-15),(-105,0),(-90,15)],
+    fillColor="black", lineColor="black", size=1)
+'''
+mask_rect = visual.ShapeStim(
+    win=win, vertices=[(-120, 45), (120, 45), (120, -45), (-120, -45)],
+    fillColor="grey", lineColor="grey", size=1)
+'''
 
 # Text stimuli for welcome and goodbye screens
-welcome_text = visual.TextStim(win, text='Welcome to the experiment\nPress space to continue', pos=(0, 0), color="black")
-goodbye_text = visual.TextStim(win, text='Experiment finished!\nThank you for your participation\nPress space to exit', pos=(0, 0), color="black")
+welcome_text = visual.TextStim(win, text='Welcome to the experiment\nPress space to continue', pos=(0, 0), color="white")
+goodbye_text = visual.TextStim(win, text='Experiment finished!\nThank you for your participation\nPress space to exit', pos=(0, 0), color="white")
 
 # Fixation and blank
-fixation = visual.TextStim(win, text='+', pos=(0, 0), color="black")
+fixation = visual.TextStim(win, text='+', pos=(0, 0), color="white")
 blank = visual.TextStim(win, "")
 #endregion
 
@@ -66,7 +72,7 @@ def run_trial(trial_num, prime_direction, mask_direction, ISI, position):
     mask_outer = mask_left if mask_direction == 'left' else mask_right
     
     # Set position for both prime and mask either at top or bottom of the fixation points
-    pos = (0, 100) if position == 'top' else (0, -100)
+    pos = (0, 200) if position == 'top' else (0, -200)
     prime.pos = pos
     mask_outer.pos = pos
     mask_inner.pos = pos
