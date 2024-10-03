@@ -5,14 +5,10 @@ from psychopy import visual, core, event, prefs
 import expLib51 as exlib
 import numpy as np
 import os
-
-prefs.hardware['audioLib']=['PTB']
-prefs.hardware['audioLatencyMode']=3
-
 # Housekeeping
 # region
 refreshRate=165
-exlib.setRefreshRate(refreshRate)
+#exlib.setRefreshRate(refreshRate)
 trialClock=core.Clock()
 expName="devmp1"
 dbConf=exlib.beta
@@ -30,16 +26,26 @@ win = visual.Window(units="pix", size=(1920, 1080), color='black', fullscr=True)
 # region
 num_blocks = 3
 n_trials_per_condition = 5
-ISI_frames = [0, 2, 4, 6, 8, 10, 12]
+ISI_frames = [0,2,4,6,8,10,12]
+
 # endregion
 
-# Define stimuli: primes, masks
+# Define stimuli: primes, masks, text
 #region
+# Text stimuli
+welcome_text = visual.TextStim(win, text='Welcome to the experiment\nPress space to continue', pos=(0, 0), color="white")
+goodbye_text = visual.TextStim(win, text='Experiment finished!\nThank you for your participation\nPress space to exit', pos=(0, 0), color="white")
+wait_text = visual.TextStim(win, text='Choose the direction', pos=(0, -300), color="red")
+choose_text = visual.TextStim(win, text='Choose the direction', pos=(0, -300), color="green")
+
+# Fixation and blank
+fixation = visual.TextStim(win, text='+', pos=(0, 0), color="white", bold = True, height = 80)
+
 prime_left = visual.ShapeStim(
-    win=win, vertices=[(-105,0),(-100,30),(105,30),(75,0),(105,-30),(-75,-30)],
+    win=win, vertices=[(-100,0),(-75,25),(100,25),(75,0),(100,-25),(-75,-25)],
     fillColor="white", lineColor="white", size=1)
 prime_right = visual.ShapeStim(
-    win=win, vertices=[(-75,0),(-105,30),(75,30),(105,0),(75,-30),(-105,-30)],
+    win=win, vertices=[(-75,0),(-100,25),(75,25),(100,0),(75,-25),(-100,-25)],
     fillColor="white", lineColor="white", size=1)
 mask_left = visual.ShapeStim(
     win=win, vertices=[(-165, 0), (-120, 45), (120, 45), (120, -45), (-120, -45)],
@@ -50,19 +56,6 @@ mask_right = visual.ShapeStim(
 mask_inner = visual.ShapeStim(
     win=win, vertices=[(-105,30),(105,30),(90,15),(105,0),(90,-15),(105,-30),(-105,-30),(-90,-15),(-105,0),(-90,15)],
     fillColor="black", lineColor="black", size=1)
-'''
-mask_rect = visual.ShapeStim(
-    win=win, vertices=[(-120, 45), (120, 45), (120, -45), (-120, -45)],
-    fillColor="grey", lineColor="grey", size=1)
-'''
-
-# Text stimuli for welcome and goodbye screens
-welcome_text = visual.TextStim(win, text='Welcome to the experiment\nPress space to continue', pos=(0, 0), color="white")
-goodbye_text = visual.TextStim(win, text='Experiment finished!\nThank you for your participation\nPress space to exit', pos=(0, 0), color="white")
-
-# Fixation and blank
-fixation = visual.TextStim(win, text='+', pos=(0, 0), color="white")
-blank = visual.TextStim(win, "")
 #endregion
 
 # Define a function for a single trial
@@ -72,18 +65,24 @@ def run_trial(trial_num, prime_direction, mask_direction, ISI, position):
     mask_outer = mask_left if mask_direction == 'left' else mask_right
     
     # Set position for both prime and mask either at top or bottom of the fixation points
-    pos = (0, 200) if position == 'top' else (0, -200)
+    pos = (0, 130) if position == 'top' else (0, -130)
     prime.pos = pos
     mask_outer.pos = pos
     mask_inner.pos = pos
+
+    # Include fixation and wait text point to the prime
+    prime = visual.BufferImageStim(win,stim=[prime, fixation, wait_text])
+
+    # Combine the two components of the mask and fixation and wait text together
+    mask = visual.BufferImageStim(win,stim=[mask_outer, mask_inner, fixation, wait_text])
     
-    # Combine the two components of the mask together
-    mask = visual.BufferImageStim(win,stim=[mask_outer, mask_inner])
-    
+    # Wait screen
+    wait = visual.BufferImageStim(win,stim=[fixation, wait_text])
+
     # Run frames
     if ISI != 0:
-        frames = [fixation, prime, blank, mask]
-        frameDurations = [120, 2, ISI, 20]
+        frames = [wait, prime, wait, mask]
+        frameDurations = [120, 2, ISI, 12]
         stamps=exlib.runFrames(win,frames,frameDurations,trialClock)
         critTime=exlib.actualFrameDurations(frameDurations,stamps)[2]
         critPass=(np.absolute((ISI/refreshRate)-critTime)<.001)
@@ -91,25 +90,40 @@ def run_trial(trial_num, prime_direction, mask_direction, ISI, position):
             print('Critical pass fail at trial ' +str(trial_num)+' : while critical time is '+str(np.round(critTime,4))+
                 ', actual time is '+str(np.round(ISI/refreshRate,4)))
     else:
-        frames = [fixation, prime, mask]
-        frameDurations = [120, 2, 20]
+        frames = [wait, prime, mask]
+        frameDurations = [120, 2, 12] 
         stamps=exlib.runFrames(win,frames,frameDurations,trialClock)
 
     # Record the reaction time and wait for response for at most 1.5s
     trialClock.reset()
-    keys = event.waitKeys(maxWait=1.5, keyList=['left', 'right'], timeStamped=trialClock)
-
+    fixation.draw()
+    choose_text.draw()
+    win.flip()
+    keys = event.waitKeys(maxWait=1.5, timeStamped=trialClock, keyList=['x','m'])
     # Check if the response was correct
     if keys:
         key, rt = keys[0]
-        correct = (key == mask_direction)
+        if key == 'x':
+            response = 'left'
+        else:
+            response = 'right'
+        correctness = (response == mask_direction)
         # correct = (key == prime_direction)
     else:
-        key, rt, correct = None, None, False  # No response is considered incorrect
+        response, rt, correctness = None, None, False  # No response is considered incorrect
 
     # Return trial result
-    # Prime_direction, mask_direction, ISI_duration, position, response, rt, correct
-    output = [prime_direction, mask_direction, np.round(ISI * 0.006,3), position, key, np.round(rt,3) if rt != None else rt, correct]
+    # Prime_direction, mask_direction, congruency，ISI_duration, position, response, rt, correct
+    output = [
+        prime_direction, 
+        mask_direction, 
+        prime_direction == mask_direction,
+        np.round(ISI * 0.006,3), 
+        position, 
+        response, 
+        np.round(rt,3) if rt != None else rt, 
+        correctness]
+    print(output)
     print(*output, sep=',', file=fptr)
 
 # Define a function to run a block of trials
@@ -145,7 +159,6 @@ def run_block(n_trials_per_condition, ISI_frames):
             position=trial['position']
         )
 
-
     return False  # Return results and signal to continue
 
 # Define a function to run the full experiment with multiple blocks
@@ -163,6 +176,7 @@ def run_experiment(num_blocks, n_trials_per_condition, ISI_frames):
 
         # Pause between blocks (except last one)
         if block_num < num_blocks - 1:
+            
             break_text = visual.TextStim(win, text=f'Block {block_num + 1} finished\nPress space to continue to the next block', pos=(0, 0), color="black")
             break_text.draw()
             win.flip()
@@ -190,7 +204,6 @@ exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
 win.close()
 # Get everything in the store file and close the file
 fptr.flush()
-os.system('cat *.dat >all.dat')
 # endregion
 
 
