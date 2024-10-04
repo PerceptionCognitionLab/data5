@@ -17,8 +17,8 @@ refreshRate=165
 elib.setRefreshRate(refreshRate)
 expName="ev1"
 dbConf=elib.data5
-#[pid,sid,fname]=elib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
-[pid,sid,fname]=[1,1,'test']
+[pid,sid,fname]=elib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
+# [pid,sid,fname]=[1,1,'test']
 fptr=open(fname,"w")
 mu = 10
 sd = 25
@@ -77,7 +77,7 @@ def countdown():
     xAxis.draw()
     yAxis.draw()
     win.flip()
-    core.wait(0.5 + np.random.normal(0,0.1))
+    core.wait(np.random.normal(0.5,0.1) + np.random.normal(0,0.1))
 
 def manualTutorial():
     ready()
@@ -188,7 +188,7 @@ for i in range(4):
     autoTutorial(tutorialAnswers[i],interval)
     
 numBlocks = 3
-numTrials = 3
+numTrials = 30
 for j in range(numBlocks):
     ready()
     for i in range(numTrials):
@@ -202,5 +202,5 @@ hz=round(win.getActualFrameRate())
 win.close()
 
 
-#elib.stopExp(sid,hz,resX,resY,seed,dbConf)
+elib.stopExp(sid,hz,resX,resY,seed,dbConf)
 core.quit()
