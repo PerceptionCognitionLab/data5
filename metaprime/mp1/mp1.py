@@ -5,16 +5,19 @@ from psychopy import visual, core, event, prefs
 import expLib51 as exlib
 import numpy as np
 import os
+# In this pilot experiment, we aim to find the type B U shape metacontrast masking effect, we fixed the prime duration to be 7 frames (42ms) and ISI changes 
+# among 3, 6, and 9 frames (18ms, 36ms, 54ms), each block has 4 * 4 * 2 * 4 = 128 trials, there will be 3 blocks in total 
+
 # Housekeeping
 # region
 refreshRate=165
 exlib.setRefreshRate(refreshRate)
 trialClock=core.Clock()
-expName="devmp1"
-dbConf=exlib.beta
+expName="mp1"
+dbConf=exlib.data5
 seed = random.randrange(1e6)
-# [pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=False,refreshRate=refreshRate)
-fname = 'test.dat'
+#[pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
+[pid,sid,fname]=[1,1,'test']
 fptr = open(fname,'w')
 # endregion
 
@@ -25,8 +28,9 @@ win = visual.Window(units="pix", size=(1920, 1080), color='black', fullscr=True)
 # Experiment settings
 # region
 num_blocks = 3
-n_trials_per_condition = 5
-ISI_frames = [2]
+n_trials_per_condition = 4
+ISI_frames = [0,3,6,9]
+num_trials_per_block = 96
 
 # endregion
 
@@ -43,10 +47,10 @@ fixation = visual.TextStim(win, text='+', pos=(0, 0), color="white", bold = True
 
 prime_left = visual.ShapeStim(
     win=win, vertices=[(-100,0),(-75,25),(100,25),(75,0),(100,-25),(-75,-25)],
-    fillColor="white", lineColor="white", size=1)
+    fillColor="white", lineColor="black", size=1)
 prime_right = visual.ShapeStim(
     win=win, vertices=[(-75,0),(-100,25),(75,25),(100,0),(75,-25),(-100,-25)],
-    fillColor="white", lineColor="white", size=1)
+    fillColor="white", lineColor="black", size=1)
 mask_left = visual.ShapeStim(
     win=win, vertices=[(-165, 0), (-120, 45), (120, 45), (120, -45), (-120, -45)],
     fillColor="white", lineColor="white", size=1)
@@ -59,7 +63,7 @@ mask_inner = visual.ShapeStim(
 #endregion
 
 # Define a function for a single trial
-def run_trial(trial_num, prime_direction, mask_direction, ISI, position): 
+def run_trial(block_num, trial_num, prime_direction, mask_direction, ISI, position): 
     # Set the orientation of the prime used in this trial
     prime = prime_left if prime_direction == 'left' else prime_right
     mask_outer = mask_left if mask_direction == 'left' else mask_right
@@ -107,14 +111,18 @@ def run_trial(trial_num, prime_direction, mask_direction, ISI, position):
             response = 'left'
         else:
             response = 'right'
-        correctness = (response == mask_direction)
+        correctness = (response == prime_direction)
         # correct = (key == prime_direction)
     else:
         response, rt, correctness = None, None, False  # No response is considered incorrect
 
     # Return trial result
-    # Prime_direction, mask_direction, congruency，ISI_duration, position, response, rt, correct
-    output = [
+    # Pis, Sid, general trial_num, block_num, trial_num in block, prime_direction, mask_direction, congruency，ISI_duration, position, response, rt, correct
+    output = [pid,
+        sid,
+        (block_num-1) * num_trials_per_block + trial_num,
+        block_num,
+        trial_num,
         prime_direction, 
         mask_direction, 
         prime_direction == mask_direction,
@@ -127,7 +135,7 @@ def run_trial(trial_num, prime_direction, mask_direction, ISI, position):
     print(*output, sep=',', file=fptr)
 
 # Define a function to run a block of trials
-def run_block(n_trials_per_condition, ISI_frames):
+def run_block(block_num, n_trials_per_condition, ISI_frames):
     # Generate trial conditions
     conditions = []
     # Count on trial number
@@ -152,6 +160,7 @@ def run_block(n_trials_per_condition, ISI_frames):
         trial_num += 1
         # Run the trial and collect results
         run_trial(
+            block_num = block_num,
             trial_num = trial_num,
             prime_direction=trial['prime'],
             mask_direction=trial['mask'],
@@ -165,18 +174,17 @@ def run_block(n_trials_per_condition, ISI_frames):
 def run_experiment(num_blocks, n_trials_per_condition, ISI_frames):
     all_results = []
 
-    for block_num in range(num_blocks):
-        print(f"Running Block {block_num + 1}...")
+    for block_num in range(1, num_blocks+1):
+        print(f"Running Block {block_num}...")
 
         # Run a block of trials
-        quit_experiment = run_block(n_trials_per_condition, ISI_frames)
+        quit_experiment = run_block(block_num, n_trials_per_condition, ISI_frames)
         if quit_experiment:
             print("Experiment quit by user.")
             break  # Stop experiment if quit signal received
 
         # Pause between blocks (except last one)
-        if block_num < num_blocks - 1:
-            
+        if block_num < num_blocks:
             break_text = visual.TextStim(win, text=f'Block {block_num + 1} finished\nPress space to continue to the next block', pos=(0, 0), color="black")
             break_text.draw()
             win.flip()
@@ -191,16 +199,17 @@ win.flip()
 event.waitKeys(keyList=['space'])
 # Run the experiment
 all_results = run_experiment(num_blocks, n_trials_per_condition, ISI_frames)
+
 # Show goodbye screen
 goodbye_text.draw()
 win.flip()
 event.waitKeys(keyList=['space'])
+
 # Record settings and close the window
-'''
 hz=round(win.getActualFrameRate())
 [resX,resY]=win.size
-exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
-'''
+# exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
+
 win.close()
 # Get everything in the store file and close the file
 fptr.flush()

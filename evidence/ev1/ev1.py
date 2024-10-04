@@ -15,8 +15,8 @@ abortKey = ['9']
 continueKey = ['Enter']
 refreshRate=165
 elib.setRefreshRate(refreshRate)
-expName="devEv"
-dbConf=elib.beta
+expName="ev1"
+dbConf=elib.data5
 #[pid,sid,fname]=elib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
 [pid,sid,fname]=[1,1,'test']
 fptr=open(fname,"w")
@@ -77,11 +77,11 @@ def countdown():
     xAxis.draw()
     yAxis.draw()
     win.flip()
-    core.wait(0.5)
+    core.wait(0.5 + np.random.normal(0,0.1))
 
 def manualTutorial():
     ready()
-    coordinates = [10,87,44,-71,-10,-49,-31,18,13,-37,42,-97,-70,-88]
+    coordinates = [10,87,44,-49,-10,-71,-31,18,13,-37,42,-97,-70,-88]
     for i in range(len(coordinates)):
         if(i == 0 or i == 3 or i == 6):
             countdown()
@@ -175,19 +175,20 @@ def displayDots(mu,sd,numDots,dotY,dotRadius,feedback):
     playIncorrectSound()
     return [*coordinates,correct,0,i,responseTime]
 
-# manualTutorial()
-# tutorialAnswers = [1,-1,-1,1]
-# ready()
-# for i in range(4):
-#     if(i < 2):
-#         interval = 1
-#     else:
-#         interval = 0.3
-#     countdown()
-#     autoTutorial(tutorialAnswers[i],interval)
+manualTutorial()
+tutorialAnswers = [1,-1,-1,1]
+for i in range(4):
+    if(i == 0 or i == 2):
+        ready()
+    if(i < 2):
+        interval = 1
+    else:
+        interval = 0.3
+    countdown()
+    autoTutorial(tutorialAnswers[i],interval)
     
 numBlocks = 3
-numTrials = 5
+numTrials = 3
 for j in range(numBlocks):
     ready()
     for i in range(numTrials):
