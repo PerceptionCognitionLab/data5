@@ -16,8 +16,7 @@ trialClock=core.Clock()
 expName="mp1"
 dbConf=exlib.data5
 seed = random.randrange(1e6)
-#[pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
-[pid,sid,fname] = [1,1,'test']
+[pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
 fptr = open(fname,'w')
 # endregion
 
@@ -136,11 +135,12 @@ def run_trial(block_num, trial_num, prime_direction, mask_direction, ISI, positi
               response, 
               np.round(rt, 3) if rt is not None else rt, 
               correctness]
-    print(output)
-    print(*output, sep=',', file=fptr)
+    if provide_feedback == False:
+        print(output)
+        print(*output, sep=',', file=fptr)
 
 # Define a function for a practice trial
-def run_practice_block(n_trials=10):
+def run_practice_block(n_trials=20):
     # Start the practice block
     start_practice_text = visual.TextStim(win, text='We will begin with some practice trials. We will provide feedback on correctness. Note that in the real experiment there will be no feedback.\n\nPress space to start the practice trials.', pos=(0, 0), color="white")
     start_practice_text.draw()
@@ -266,7 +266,7 @@ event.waitKeys(keyList=['space'])
 # Record settings and close the window
 hz=round(win.getActualFrameRate())
 [resX,resY]=win.size
-#exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
+exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
 
 win.close()
 # Get everything in the store file and close the file
