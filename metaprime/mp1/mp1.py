@@ -27,7 +27,7 @@ win = visual.Window(units="pix", size=(1920, 1080), color='black', fullscr=True)
 # region
 num_blocks = 3
 n_trials_per_condition = 4
-ISI_frames = [0,3,6,9]
+ISI_frames = [0,5,10,15,20]
 num_trials_per_block = 128
 
 # endregion
@@ -119,7 +119,7 @@ def run_trial(block_num, trial_num, prime_direction, mask_direction, ISI, positi
     # 1-second break before the next fixation point
     else:
         win.flip()  # Clear the screen
-        core.wait(1)
+        core.wait(0.2) # Display feedback for 0.2 second
 
     # Return trial result
     output = [pid,

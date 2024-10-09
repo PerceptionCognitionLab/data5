@@ -13,7 +13,7 @@ correctSound2 = sound.Sound(1000, secs=0.25)
 incorrectSound1 = sound.Sound(500, secs=0.5)
 incorrectSound2 = sound.Sound(375, secs=0.5)
 rng = np.random.default_rng(seed=np.random.randint(1, 1000))
-win = visual.Window(units="pix", size=(1920, 1080), color=[-1, -1, -1], fullscr=True)
+win = visual.Window(units="pix", size=(1920, 1080), color=[-1,-1,-1], fullscr=True)
 globalClock = core.Clock()
 
 # Functions
@@ -58,7 +58,7 @@ def rand_ltr(win, duration=2, sd=1):
     fix.draw()
     win.flip()
     core.wait(0.5)
-    stim = visual.ImageStim(win, image=temp_image_path, size=(800, 600))
+    stim = visual.ImageStim(win, image=temp_image_path, size=(640, 640), pos=(160,160))
     stim.draw()
     win.flip()
     clock = core.Clock()
@@ -139,7 +139,7 @@ def doTrial(numTrials, block, sd):
 
     return chosen_letter_array, correct_array, std_array, response_times, weights, duration_array
 
-numTrials = 10
+numTrials = 2
 block = 1
 
 chosen_letter_array, correct_array, std_array, response_times, weights, duration_array = doTrial(numTrials, block, sd=1)
