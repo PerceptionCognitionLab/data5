@@ -16,8 +16,8 @@ trialClock=core.Clock()
 expName="mp1"
 dbConf=exlib.data5
 seed = random.randrange(1e6)
-[pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
-#[pid,sid,fname] = [1,1,'test.dat']
+#[pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
+[pid,sid,fname] = [1,1,'test.dat']
 fptr = open(fname,'w')
 # endregion
 
@@ -30,7 +30,7 @@ num_blocks = 3
 n_trials_per_condition = 3
 ISI_frames = [0,3,6,9,12,18]
 num_trials_per_block = 144
-primeFrame = 7
+primeFrame = 5
 maskFrame = 12
 # endregion
 
@@ -106,7 +106,7 @@ def run_trial(block_num, trial_num, prime_direction, mask_direction, ISI, positi
     if keys:
         key, rt = keys[0]
         response = 'left' if key == 'x' else 'right'
-        correctness = (response == prime_direction)
+        correctness = (response == mask_direction)
     else:
         response, rt, correctness = None, None, False  # No response is considered incorrect
 
@@ -268,7 +268,7 @@ event.waitKeys(keyList=['space'])
 # Record settings and close the window
 hz=round(win.getActualFrameRate())
 [resX,resY]=win.size
-exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
+#exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
 
 win.close()
 # Get everything in the store file and close the file
