@@ -16,13 +16,10 @@ trialClock=core.Clock()
 expName="mp1"
 dbConf=exlib.data5
 seed = random.randrange(1e6)
-[pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
-#[pid,sid,fname] = [1,1,'test.dat']
+#[pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
+[pid,sid,fname] = [1,1,'test.dat']
 fptr = open(fname,'w')
 # endregion
-
-# Set up the window
-win = visual.Window(units="pix", size=(1920, 1080), color='black', fullscr=True)
 
 # Experiment settings
 # region
@@ -31,33 +28,40 @@ n_trials_per_condition = 3
 ISI_frames = [0,3,6,9,12,18]
 num_trials_per_block = 144
 primeFrame = 7
-maskFrame = 12
+maskFrame = 7
 # endregion
 
 # Define stimuli: primes, masks, text
 #region
+# Color
+bg_color = [1,1,1]
+sti_color = [-1,-1,-1]
+
+# Set up the window
+win = visual.Window(units="pix", size=(1920, 1080), color= [1,1,1], fullscr=True)
+
 # Text stimuli
-welcome_text = visual.TextStim(win, text='In this experiment, you will see a small white arrow followed by a large white arrow shown at either the upper or lower area of the screen.\n\nBelow is the sample stimuli of the small right arrow and big left arrow. The small white arrow locates at the center of the big white arrow. In the real experiment, the small arrow will appear shortly before the big arrow appear and disappear very quick.\n\n Your task is to identify the orientation of the first small arrow by pressing either x (for left) or m (for right).\n\nYour eyes should focus at the center fixation point. Once you make a judgement, the next pair of arrows will appear, keep doing the judgement until the block is over. There will be in total 3 blocks.\n\nThe experiment will last about 10 minutes. It is hard so try your best on orientation discrimination. Press space to start the experiment.', pos=(0, 100), color="white")
-goodbye_text = visual.TextStim(win, text='Experiment finished!\nThank you for your participation\nPress space to exit', pos=(0, 0), color="white")
+welcome_text = visual.TextStim(win, text='In this experiment, you will see a small white arrow followed by a large white arrow shown at either the upper or lower area of the screen.\n\nBelow is the sample stimuli of the small right arrow and big left arrow. The small white arrow locates at the center of the big white arrow. In the real experiment, the small arrow will appear shortly before the big arrow appear and disappear very quick.\n\n Your task is to identify the orientation of the first small arrow by pressing either x (for left) or m (for right).\n\nYour eyes should focus at the center fixation point. Once you make a judgement, the next pair of arrows will appear, keep doing the judgement until the block is over. There will be in total 3 blocks.\n\nThe experiment will last about 10 minutes. It is hard so try your best on orientation discrimination. Press space to start the experiment.', pos=(0, 100), color=sti_color)
+goodbye_text = visual.TextStim(win, text='Experiment finished!\nThank you for your participation\nPress space to exit', pos=(0, 0), color=sti_color)
 
 # Fixation and blank
-fixation = visual.TextStim(win, text='+', pos=(0, 0), color="white", bold = True, height = 40)
+fixation = visual.TextStim(win, text='+', pos=(0, 0), color=bg_color, bold = True, height = 40)
 
 prime_left = visual.ShapeStim(
     win=win, vertices=[(-90,0),(-70,20),(80,20),(60,0),(80,-20),(-70,-20)],
-    fillColor="white", lineColor="white", size=1)
+    fillColor=sti_color , lineColor=sti_color , size=1)
 prime_right = visual.ShapeStim(
     win=win, vertices=[(-60,0),(-80,20),(70,20),(90,0),(70,-20),(-80,-20)],
-    fillColor="white", lineColor="white", size=1)
+    fillColor=sti_color , lineColor=sti_color , size=1)
 mask_left = visual.ShapeStim(
     win=win, vertices=[(-165, 0), (-120, 45), (120, 45), (120, -45), (-120, -45)],
-    fillColor="white", lineColor="white", size=1)
+    fillColor=sti_color , lineColor=sti_color , size=1)
 mask_right = visual.ShapeStim(
     win=win, vertices=[(-120, 45), (120, 45), (165,0), (120, -45), (-120, -45)],
-    fillColor="white", lineColor="white", size=1)
+    fillColor=sti_color , lineColor=sti_color , size=1)
 mask_inner = visual.ShapeStim(
     win=win, vertices=[(-105,30),(105,30),(90,15),(105,0),(90,-15),(105,-30),(-105,-30),(-90,-15),(-105,0),(-90,15)],
-    fillColor="black", lineColor="black", size=1)
+    fillColor=bg_color, lineColor=bg_color, size=1)
 #endregion
 
 # Define a function for a single trial
@@ -113,7 +117,7 @@ def run_trial(block_num, trial_num, prime_direction, mask_direction, ISI, positi
     # Provide feedback if it's a practice trial
     if provide_feedback:
         feedback_text = 'Correct!' if correctness else 'Incorrect!'
-        feedback = visual.TextStim(win, text=feedback_text, pos=(0, 0), color="white")
+        feedback = visual.TextStim(win, text=feedback_text, pos=(0, 0), color=sti_color)
         feedback.draw()
         win.flip()
         core.wait(1)  # Display feedback for 1 second
@@ -144,7 +148,7 @@ def run_trial(block_num, trial_num, prime_direction, mask_direction, ISI, positi
 # Define a function for a practice trial
 def run_practice_block(n_trials=20):
     # Start the practice block
-    start_practice_text = visual.TextStim(win, text='We will begin with some practice trials. We will provide feedback on correctness. Note that in the real experiment there will be no feedback.\n\nPress space to start the practice trials.', pos=(0, 0), color="white")
+    start_practice_text = visual.TextStim(win, text='We will begin with some practice trials. We will provide feedback on correctness. Note that in the real experiment there will be no feedback.\n\nPress space to start the practice trials.', pos=(0, 0), color=sti_color)
     start_practice_text.draw()
     win.flip()
     event.waitKeys(keyList=['space'])
@@ -177,7 +181,7 @@ def run_practice_block(n_trials=20):
         )
 
     # Show practice end message
-    end_practice_text = visual.TextStim(win, text='Practice finished.\nPress space to start the real experiment.', pos=(0, 0), color="white")
+    end_practice_text = visual.TextStim(win, text='Practice finished.\nPress space to start the real experiment.', pos=(0, 0), color=sti_color)
     end_practice_text.draw()
     win.flip()
     event.waitKeys(keyList=['space'])
@@ -241,7 +245,7 @@ def run_experiment(num_blocks, n_trials_per_condition, ISI_frames):
 
         # Pause between blocks (except last one)
         if block_num < num_blocks:
-            break_text = visual.TextStim(win, text=f'Block {block_num} finished\nPress space to continue to the next block', pos=(0, 0), color="white")
+            break_text = visual.TextStim(win, text=f'Block {block_num} finished\nPress space to continue to the next block', pos=(0, 0), color=sti_color)
             break_text.draw()
             win.flip()
             event.waitKeys(keyList=['space'])
@@ -268,7 +272,7 @@ event.waitKeys(keyList=['space'])
 # Record settings and close the window
 hz=round(win.getActualFrameRate())
 [resX,resY]=win.size
-exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
+#exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
 
 win.close()
 # Get everything in the store file and close the file
