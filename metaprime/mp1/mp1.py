@@ -5,10 +5,7 @@ from psychopy import visual, core, event, prefs
 import expLib51 as exlib
 import numpy as np
 import os
-# In this pilot experiment, we aim to find the type B U shape metacontrast masking effect, we fixed the prime duration to be 7 frames (42ms) and ISI changes 
-# among 0, 3, 6, and 9 frames (0ms, 18ms, 36ms, 54ms), each block has 6 * 3 * 2 * 4 = 144 trials, there will be 3 blocks in total 
 
-# Housekeeping
 # region
 refreshRate=165
 exlib.setRefreshRate(refreshRate)
@@ -23,29 +20,36 @@ fptr = open(fname,'w')
 
 # Experiment settings
 # region
-num_blocks = 3
-n_trials_per_condition = 3
-ISI_frames = [0,3,6,9,12,18]
+num_blocks = 2
+n_trials_per_condition = 1
+ISI_frames = [0]
 num_trials_per_block = 144
-primeFrame = 7
+primeFrame = 5
 maskFrame = 7
+gap = 0.2
+practice_num = 1
 # endregion
 
 # Define stimuli: primes, masks, text
 #region
 # Color
-bg_color = [1,1,1]
+bg_color = [0.75,0.75,0.75]
 sti_color = [-1,-1,-1]
 
 # Set up the window
-win = visual.Window(units="pix", size=(1920, 1080), color= [1,1,1], fullscr=True)
+win = visual.Window(units="pix", size=(1920, 1080), color= bg_color, fullscr=True)
 
 # Text stimuli
-welcome_text = visual.TextStim(win, text='In this experiment, you will see a small white arrow followed by a large white arrow shown at either the upper or lower area of the screen.\n\nBelow is the sample stimuli of the small right arrow and big left arrow. The small white arrow locates at the center of the big white arrow. In the real experiment, the small arrow will appear shortly before the big arrow appear and disappear very quick.\n\n Your task is to identify the orientation of the first small arrow by pressing either x (for left) or m (for right).\n\nYour eyes should focus at the center fixation point. Once you make a judgement, the next pair of arrows will appear, keep doing the judgement until the block is over. There will be in total 3 blocks.\n\nThe experiment will last about 10 minutes. It is hard so try your best on orientation discrimination. Press space to start the experiment.', pos=(0, 100), color=sti_color)
-goodbye_text = visual.TextStim(win, text='Experiment finished!\nThank you for your participation\nPress space to exit', pos=(0, 0), color=sti_color)
-
+welcome_text1 = visual.TextStim(win, text='Welcome to the experiment! Press spacebar to continue.', pos = (0,0), color = sti_color)
+welcome_text2 = visual.TextStim(win, text='The exerpiment contain two sessions. Each session has three blocks, which will last around 15 minutes.\n\nPress space bar to start the first session.', pos = (0,0), color = sti_color)
+instruction_text1 = visual.TextStim(win, text='In this session, a flash arrow (shown as below) will be displayed on the screen. Your task is to identify the orientation of the arrow once you see it.\n\nIf you think the arrow points to left. press "x", if you think the arrow points to right, press "m".\n\nPress spacebar to continue', pos = (0,0), color = sti_color)
+rest_text=  visual.TextStim(win, text='Session 1 ends! You can have some rest before starting session 2.\n\nPress spacebar to start session 2.', pos = (0,0), color = sti_color)
+instruction_text2 = visual.TextStim(win, text='You may have notice that there is a smaller arrow appears at the center of the main arrow (shown as below). In this session, you are required to identify the orientation of that smaller arrow while neglecting the main arrow.\n\nIf you think the arrow points to left. press "x", if you think the arrow points to right, press "m".\n\nThis session is more difficult than the first session. Please try you best. Press spacebar to continue', pos = (0,0), color = sti_color)
+goodbye_text = visual.TextStim(win, text='Experiment finished! Thank you for your participation.\n\nPress spacebar to exit', pos=(0, 0), color=sti_color)
+start_practice_text = visual.TextStim(win, text='We will begin with some practice trials. We will provide feedback on correctness. Note that in the real experiment there will be no feedback.\n\nPress space to start the practice trials.', pos=(0, 0), color=sti_color)
+end_practice_text = visual.TextStim(win, text='Practice finished.\n\nPress space to start the real experiment.', pos=(0, 0), color=sti_color)
 # Fixation and blank
-fixation = visual.TextStim(win, text='+', pos=(0, 0), color=bg_color, bold = True, height = 40)
+fixation = visual.TextStim(win, text='+', pos=(0, 0), color=sti_color, bold = True, height = 40)
 
 prime_left = visual.ShapeStim(
     win=win, vertices=[(-90,0),(-70,20),(80,20),(60,0),(80,-20),(-70,-20)],
@@ -65,7 +69,12 @@ mask_inner = visual.ShapeStim(
 #endregion
 
 # Define a function for a single trial
-def run_trial(block_num, trial_num, prime_direction, mask_direction, ISI, position, provide_feedback=False): 
+def run_trial(block_num, trial_num, prime_direction, mask_direction, ISI, position, provide_feedback=False, goal = None): 
+    # Set goal of the trial
+    if goal == 'mask':
+        true = mask_direction
+    else:
+        true = prime_direction
     # Set the orientation of the prime used in this trial
     prime = prime_left if prime_direction == 'left' else prime_right
     mask_outer = mask_left if mask_direction == 'left' else mask_right
@@ -110,7 +119,7 @@ def run_trial(block_num, trial_num, prime_direction, mask_direction, ISI, positi
     if keys:
         key, rt = keys[0]
         response = 'left' if key == 'x' else 'right'
-        correctness = (response == prime_direction)
+        correctness = (response == true)
     else:
         response, rt, correctness = None, None, False  # No response is considered incorrect
 
@@ -130,6 +139,7 @@ def run_trial(block_num, trial_num, prime_direction, mask_direction, ISI, positi
     # Return trial result
     output = [pid,
               sid,
+              goal,
               (block_num - 1) * num_trials_per_block + trial_num,
               block_num,
               trial_num,
@@ -146,9 +156,8 @@ def run_trial(block_num, trial_num, prime_direction, mask_direction, ISI, positi
         print(*output, sep=',', file=fptr)
 
 # Define a function for a practice trial
-def run_practice_block(n_trials=20):
+def run_practice_block(n_trials=practice_num, goal = None):
     # Start the practice block
-    start_practice_text = visual.TextStim(win, text='We will begin with some practice trials. We will provide feedback on correctness. Note that in the real experiment there will be no feedback.\n\nPress space to start the practice trials.', pos=(0, 0), color=sti_color)
     start_practice_text.draw()
     win.flip()
     event.waitKeys(keyList=['space'])
@@ -177,11 +186,11 @@ def run_practice_block(n_trials=20):
             mask_direction=trial['mask'],
             ISI=trial['ISI'],
             position=trial['position'],
-            provide_feedback=True  # Enable feedback for practice
+            provide_feedback=True,  # Enable feedback for practice
+            goal = goal
         )
 
     # Show practice end message
-    end_practice_text = visual.TextStim(win, text='Practice finished.\nPress space to start the real experiment.', pos=(0, 0), color=sti_color)
     end_practice_text.draw()
     win.flip()
     event.waitKeys(keyList=['space'])
@@ -189,7 +198,7 @@ def run_practice_block(n_trials=20):
     return False  # Continue to the main experiment
 
 # Define a function to run a block of trials
-def run_block(block_num, n_trials_per_condition, ISI_frames):
+def run_block(block_num, n_trials_per_condition, ISI_frames, goal = None):
     # Generate trial conditions
     conditions = []
     # Count on trial number
@@ -219,16 +228,17 @@ def run_block(block_num, n_trials_per_condition, ISI_frames):
             prime_direction=trial['prime'],
             mask_direction=trial['mask'],
             ISI=trial['ISI'],
-            position=trial['position']
+            position=trial['position'],
+            goal = goal
         )
 
     return False  # Return results and signal to continue
 
 # Define a function to run the full experiment with multiple blocks
-def run_experiment(num_blocks, n_trials_per_condition, ISI_frames):
+def run_experiment(num_blocks, n_trials_per_condition, ISI_frames, goal = None):
     # Run the practice block first
     print("Running Practice Block...")
-    quit_experiment = run_practice_block()
+    quit_experiment = run_practice_block(goal = goal)
     if quit_experiment:
         print("Experiment quit by user during practice.")
         return
@@ -238,7 +248,7 @@ def run_experiment(num_blocks, n_trials_per_condition, ISI_frames):
         print(f"Running Block {block_num}...")
 
         # Run a block of trials
-        quit_experiment = run_block(block_num, n_trials_per_condition, ISI_frames)
+        quit_experiment = run_block(block_num, n_trials_per_condition, ISI_frames, goal = goal)
         if quit_experiment:
             print("Experiment quit by user.")
             break  # Stop experiment if quit signal received
@@ -252,17 +262,46 @@ def run_experiment(num_blocks, n_trials_per_condition, ISI_frames):
 
 # The experiment skeleton
 # region
-# Welcome page
-prime_right.pos = (0,-300)
-mask_left.pos = (0,-300)
-mask_inner.pos = (0,-300)
-welcome_page = visual.BufferImageStim(win, stim=[welcome_text, mask_left, mask_inner,prime_right])
-welcome_page.draw()
+# welcome1
+welcome_text1.draw()
 win.flip()
 event.waitKeys(keyList=['space'])
 
-# Run the experiment
-all_results = run_experiment(num_blocks, n_trials_per_condition, ISI_frames)
+# welcome2
+welcome_text2.draw()
+win.flip()
+event.waitKeys(keyList=['space'])
+
+# instruction1
+mask_left.pos = (0,-300)
+mask_inner.pos = (0,-300)
+mask_left.draw()
+mask_inner.draw()
+instruction_text1.draw()
+win.flip()
+event.waitKeys(keyList=['space'])
+
+# Run the mask experiment
+all_results = run_experiment(num_blocks, n_trials_per_condition, ISI_frames, goal = 'mask')
+
+# rest
+rest_text.draw()
+win.flip()
+event.waitKeys(keyList=['space'])
+
+# instruction2
+prime_right.pos = (0,-300)
+mask_left.pos = (0,-300)
+mask_inner.pos = (0,-300)
+mask_left.draw()
+mask_inner.draw()
+instruction_text2.draw()
+prime_right.draw()
+win.flip()
+event.waitKeys(keyList=['space'])
+
+# Run the prime experiment
+all_results = run_experiment(num_blocks, n_trials_per_condition, ISI_frames, goal = 'prime')
 
 # Show goodbye screen
 goodbye_text.draw()
