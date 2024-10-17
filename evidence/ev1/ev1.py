@@ -17,7 +17,7 @@ refreshRate=165
 elib.setRefreshRate(refreshRate)
 expName="ev1"
 dbConf=elib.data5
-[pid,sid,fname]=elib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
+[pid,sid,fname]=elib.startExp(expName,dbConf,pool=2,lockBox=False,refreshRate=refreshRate)
 # [pid,sid,fname]=[1,1,'test']
 fptr=open(fname,"w")
 mu = 10
@@ -157,14 +157,14 @@ def displayDots(mu,sd,numDots,dotY,dotRadius,feedback):
                 win.close()
                 core.quit()
             if(event.getKeys(['x'])):
-                if(feedback == 0):    
+                if(feedback < 3):    
                     if(correct == -1):
                         playCorrectSound()
                     else:
                         playIncorrectSound()
                 return [*coordinates,correct,-1,i,responseTime]
             if(event.getKeys(['m'])):
-                if(feedback == 0):
+                if(feedback < 3:
                     if(correct == 1):
                         playCorrectSound()
                     else:
@@ -187,7 +187,7 @@ for i in range(4):
     countdown()
     autoTutorial(tutorialAnswers[i],interval)
     
-numBlocks = 3
+numBlocks = 6
 numTrials = 30
 for j in range(numBlocks):
     ready()
