@@ -20,14 +20,14 @@ fptr = open(fname,'w')
 
 # Experiment settings
 # region
-num_blocks = 2
+num_blocks = 3
 n_trials_per_condition = 1
-ISI_frames = [0]
+ISI_frames = [0,3, 6, 9, 12, 18]
 num_trials_per_block = 144
 primeFrame = 5
 maskFrame = 7
 gap = 0.2
-practice_num = 1
+practice_num = 20
 # endregion
 
 # Define stimuli: primes, masks, text
