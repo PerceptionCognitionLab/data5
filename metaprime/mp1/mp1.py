@@ -21,10 +21,10 @@ fptr = open(fname,'w')
 # Experiment settings
 # region
 num_blocks = 3
-n_trials_per_condition = 1
-ISI_frames = [0,3, 6, 9, 12, 18]
+n_trials_per_condition = 3
+ISI_frames = [0, 3, 6, 9, 12, 18]
 num_trials_per_block = 144
-primeFrame = 5
+primeFrame = 3
 maskFrame = 7
 gap = 0.2
 practice_num = 20
@@ -42,9 +42,9 @@ win = visual.Window(units="pix", size=(1920, 1080), color= bg_color, fullscr=Tru
 # Text stimuli
 welcome_text1 = visual.TextStim(win, text='Welcome to the experiment! Press spacebar to continue.', pos = (0,0), color = sti_color)
 welcome_text2 = visual.TextStim(win, text='The exerpiment contain two sessions. Each session has three blocks, which will last around 15 minutes.\n\nPress space bar to start the first session.', pos = (0,0), color = sti_color)
-instruction_text1 = visual.TextStim(win, text='In this session, a flash arrow (shown as below) will be displayed on the screen. Your task is to identify the orientation of the arrow once you see it.\n\nIf you think the arrow points to left. press "x", if you think the arrow points to right, press "m".\n\nPress spacebar to continue', pos = (0,0), color = sti_color)
+instruction_text1 = visual.TextStim(win, text='In this session, a flash arrow (shown as below) will be displayed on the screen. Your task is to identify the orientation of the arrow as soon as you see it.\n\nIf you think the arrow points to left. press "x", if you think the arrow points to right, press "m".\n\nPress spacebar to continue', pos = (0,0), color = sti_color)
 rest_text=  visual.TextStim(win, text='Session 1 ends! You can have some rest before starting session 2.\n\nPress spacebar to start session 2.', pos = (0,0), color = sti_color)
-instruction_text2 = visual.TextStim(win, text='You may have notice that there is a smaller arrow appears at the center of the main arrow (shown as below). In this session, you are required to identify the orientation of that smaller arrow while neglecting the main arrow.\n\nIf you think the arrow points to left. press "x", if you think the arrow points to right, press "m".\n\nThis session is more difficult than the first session. Please try you best. Press spacebar to continue', pos = (0,0), color = sti_color)
+instruction_text2 = visual.TextStim(win, text='You may have notice that there is a smaller arrow appears at the center of the main arrow (shown as below). In this session, you are required to identify the orientation of that smaller arrow as soon as you see it while neglecting the main arrow.\n\nIf you think the arrow points to left. press "x", if you think the arrow points to right, press "m".\n\nThis session is more difficult than the first session. Please try you best. Press spacebar to continue', pos = (0,0), color = sti_color)
 goodbye_text = visual.TextStim(win, text='Experiment finished! Thank you for your participation.\n\nPress spacebar to exit', pos=(0, 0), color=sti_color)
 start_practice_text = visual.TextStim(win, text='We will begin with some practice trials. We will provide feedback on correctness. Note that in the real experiment there will be no feedback.\n\nPress space to start the practice trials.', pos=(0, 0), color=sti_color)
 end_practice_text = visual.TextStim(win, text='Practice finished.\n\nPress space to start the real experiment.', pos=(0, 0), color=sti_color)
@@ -311,7 +311,7 @@ event.waitKeys(keyList=['space'])
 # Record settings and close the window
 hz=round(win.getActualFrameRate())
 [resX,resY]=win.size
-#exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
+# exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
 
 win.close()
 # Get everything in the store file and close the file
