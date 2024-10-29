@@ -14,7 +14,7 @@ expName="mp1"
 dbConf=exlib.data5
 seed = random.randrange(1e6)
 #[pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
-[pid,sid,fname] = [1,1,'test.dat']
+[pid,sid,fname] = [1,1,'Shanglin.dat']
 fptr = open(fname,'w')
 # endregion
 
@@ -22,9 +22,9 @@ fptr = open(fname,'w')
 # region
 num_blocks = 3
 n_trials_per_condition = 3
-ISI_frames = [0, 3, 6, 9, 12, 18]
+ISI_frames = [0,4,8,12,16,28]
 num_trials_per_block = 144
-primeFrame = 3
+primeFrame = 2
 maskFrame = 7
 gap = 0.2
 practice_num = 20
@@ -33,8 +33,8 @@ practice_num = 20
 # Define stimuli: primes, masks, text
 #region
 # Color
-bg_color = [0.75,0.75,0.75]
-sti_color = [-1,-1,-1]
+bg_color = np.array([0.75,0.75,0.75])
+sti_color = np.array([-0.75,-0.75,-0.75])
 
 # Set up the window
 win = visual.Window(units="pix", size=(1920, 1080), color= bg_color, fullscr=True)
@@ -53,10 +53,10 @@ fixation = visual.TextStim(win, text='+', pos=(0, 0), color=sti_color, bold = Tr
 
 prime_left = visual.ShapeStim(
     win=win, vertices=[(-90,0),(-70,20),(80,20),(60,0),(80,-20),(-70,-20)],
-    fillColor=sti_color , lineColor=sti_color , size=1)
+    fillColor=sti_color, lineColor=sti_color , size=1)
 prime_right = visual.ShapeStim(
     win=win, vertices=[(-60,0),(-80,20),(70,20),(90,0),(70,-20),(-80,-20)],
-    fillColor=sti_color , lineColor=sti_color , size=1)
+    fillColor=sti_color, lineColor=sti_color, size=1)
 mask_left = visual.ShapeStim(
     win=win, vertices=[(-165, 0), (-120, 45), (120, 45), (120, -45), (-120, -45)],
     fillColor=sti_color , lineColor=sti_color , size=1)

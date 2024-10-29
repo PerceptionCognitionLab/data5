@@ -15,7 +15,7 @@ abortKey = ['9']
 continueKey = ['Enter']
 refreshRate=165
 elib.setRefreshRate(refreshRate)
-expName="ev1"
+expName="ev2"
 dbConf=elib.data5
 [pid,sid,fname]=elib.startExp(expName,dbConf,pool=2,lockBox=False,refreshRate=refreshRate)    
 # [pid,sid,fname]=[1,1,'test']
@@ -202,5 +202,5 @@ hz=round(win.getActualFrameRate())
 win.close()
 
 
-# elib.stopExp(sid,hz,resX,resY,seed,dbConf)
-core.quit()
+elib.stopExp(sid,hz,resX,resY,seed,dbConf)
+core.quit() 
