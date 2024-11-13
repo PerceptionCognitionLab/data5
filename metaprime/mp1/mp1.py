@@ -14,7 +14,7 @@ expName="mp1"
 dbConf=exlib.data5
 seed = random.randrange(1e6)
 [pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
-#[pid,sid,fname] = [1,1,'Carly.dat']
+# [pid,sid,fname] = [1,1,'Me.dat']
 fptr = open(fname,'w')
 # endregion
 
@@ -23,9 +23,11 @@ fptr = open(fname,'w')
 num_blocks = 3
 n_trials_per_condition = 3
 ISI_frames = [0,4,8,12,16,28]
+# ISI_frames = [0, 2, 4, 6, 8, 10, 12] # Vorberg's
 num_trials_per_block = 144
 primeFrame = 2
-maskFrame = 7
+maskFrame = 7   # to find dissociation
+# maskFrame = 20
 gap = 0.2
 practice_num = 20
 # endregion
@@ -33,8 +35,8 @@ practice_num = 20
 # Define stimuli: primes, masks, text
 #region
 # Color
-bg_color = np.array([0.75,0.75,0.75])
-sti_color = np.array([-0.75,-0.75,-0.75])
+bg_color = np.array([1, 1, 1]) * 3/4
+sti_color = np.array([-1, -1, -1]) * 3/4
 
 # Set up the window
 win = visual.Window(units="pix", size=(1920, 1080), color= bg_color, fullscr=True)
@@ -51,12 +53,26 @@ end_practice_text = visual.TextStim(win, text='Practice finished.\n\nPress space
 # Fixation and blank
 fixation = visual.TextStim(win, text='+', pos=(0, 0), color=sti_color, bold = True, height = 40)
 
+# contour not touch
+
 prime_left = visual.ShapeStim(
     win=win, vertices=[(-90,0),(-70,20),(80,20),(60,0),(80,-20),(-70,-20)],
     fillColor=sti_color, lineColor=sti_color , size=1)
 prime_right = visual.ShapeStim(
     win=win, vertices=[(-60,0),(-80,20),(70,20),(90,0),(70,-20),(-80,-20)],
     fillColor=sti_color, lineColor=sti_color, size=1)
+
+
+# contour touch
+'''
+prime_left = visual.ShapeStim(
+    win=win, vertices=[(-105,0),(-75,30),(105,30),(75,0),(105,-30),(-75,-30)],
+    fillColor=sti_color, lineColor=sti_color , size=1)
+prime_right = visual.ShapeStim(
+    win=win, vertices=[(-75,0),(-105,30),(75,30),(105,0),(75,-30),(-105,-30)],
+    fillColor=sti_color, lineColor=sti_color, size=1)
+'''
+
 mask_left = visual.ShapeStim(
     win=win, vertices=[(-165, 0), (-120, 45), (120, 45), (120, -45), (-120, -45)],
     fillColor=sti_color , lineColor=sti_color , size=1)
