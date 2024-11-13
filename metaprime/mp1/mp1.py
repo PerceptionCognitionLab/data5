@@ -14,7 +14,7 @@ expName="mp1"
 dbConf=exlib.data5
 seed = random.randrange(1e6)
 [pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
-# [pid,sid,fname] = [1,1,'Me.dat']
+#[pid,sid,fname] = [1,1,'Me.dat']
 fptr = open(fname,'w')
 # endregion
 
