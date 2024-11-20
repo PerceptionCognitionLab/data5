@@ -1,0 +1,67 @@
+from psychopy import visual, core
+
+# Create a window
+win = visual.Window(size=(800, 800), color=(0, 0, 0), units="pix")
+
+# Shared parameters
+spatial_freq = 0.05  # Spatial frequency (cycles per pixel)
+size_prime = 200  # Diameter of the small Gabor patch (prime)
+size_mask = 500  # Diameter of the larger Gabor patch (mask)
+contrast_prime = 1.0  # High contrast for prime
+contrast_mask = 1.0  # Dimmer contrast for mask
+mask_center_contrast = 0.2  # Reduced contrast at mask center
+angle_left = -30  # Orientation for "left"
+angle_right = 30  # Orientation for "right"
+
+# Prime stimuli
+prime_left = visual.GratingStim(
+    win=win,
+    tex="sin",
+    mask="gauss",
+    size=size_prime,
+    sf=spatial_freq,
+    contrast=contrast_prime,
+    ori=angle_left,  # 30 degrees to the left
+)
+prime_right = visual.GratingStim(
+    win=win,
+    tex="sin",
+    mask="gauss",
+    size=size_prime,
+    sf=spatial_freq,
+    contrast=contrast_prime,
+    ori=angle_right,  # 30 degrees to the right
+)
+
+# Mask stimuli
+mask_left = visual.GratingStim(
+    win=win,
+    tex="sin",
+    mask="gauss",
+    size=size_mask,
+    sf=spatial_freq,
+    contrast=contrast_mask,
+)
+mask_right = visual.GratingStim(
+    win=win,
+    tex="sin",
+    mask="gauss",
+    size=size_mask,
+    sf=spatial_freq,
+    contrast=contrast_mask,
+)
+
+# Mask inner (dimmer central region where prime is located)
+mask_inner = visual.GratingStim(
+    win=win,
+    tex="sin",
+    mask="gauss",
+    size=size_prime,
+    sf=spatial_freq,
+    contrast=mask_center_contrast,
+    ori=0,  # Neutral orientation for inner region
+)
+
+# Visualize each stimulus (for debugging; comment out for experiment)
+prime_left.draw()
+core.wait(10)

@@ -1,5 +1,0 @@
-right,right,0.12,bottom,None,None,False,True
-right,left,0.12,top,None,None,False,False
-left,left,0.12,bottom,right,0.012,False,True
-right,right,0.12,top,right,0.064,True,True
-right,right,0.12,bottom,left,0.479,False,True
