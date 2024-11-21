@@ -53,73 +53,86 @@ end_practice_text = visual.TextStim(win, text='Practice finished.\n\nPress space
 # Fixation and blank
 fixation = visual.TextStim(win, text='+', pos=(0, 0), color=sti_color, bold = True, height = 40)
 
-## Shared parameters
-spatial_freq = 0.02  # Spatial frequency (cycles per pixel)
-size_prime = 80 # Diameter of the small Gabor patch (prime)
-size_mask = 200  # Diameter of the larger Gabor patch (mask)
-contrast_prime = 0.7  
-contrast_mask = 0.7  
-contrast_inner = 0.7  
-left = -30  # Orientation for "left"
-right = 30  # Orientation for "right"
+# Parameters for the visual stimulus
+inner_ratio = 0.5
+mask_sf = 5                       # Width of Gaussian wave at the center in degrees
+prime_sf = mask_sf * inner_ratio
+mask_size = 256       # Resolution of the mask in pixels
+prime_size = int(mask_size * inner_ratio)
+mask_contrast = 0.75
+prime_contrast = 0.3
 
-# Prime stimuli
-prime_left = visual.GratingStim(
-    win=win,
-    tex="sin",
-    mask = 'circle',
-    size=size_prime,
-    sf=spatial_freq,
-    contrast=contrast_prime,
-    ori=left,  
-    color = sti_color,
-)
-prime_right = visual.GratingStim(
-    win=win,
-    tex="sin",
-    mask = 'circle',
-    size=size_prime,
-    sf=spatial_freq,
-    contrast=contrast_prime,
-    ori=right,  
-    color = sti_color,
-)
+def create_mask_inner(resolution, mask_inner):
+    x, y = np.meshgrid(
+        np.linspace(-1, 1, resolution),
+        np.linspace(-1, 1, resolution)
+    )
+    r = np.sqrt(x**2 + y**2)  # Radial distance
+    # Gaussian blur at the center
+    blurred_region = np.exp(-((r /  mask_inner) ** 2))
+    blurred_region[r >  mask_inner] = 0  # Outside the blur radius is set to 0
+    return blurred_region
 
-# Mask stimuli
-mask_left = visual.GratingStim(
-    win=win,
-    tex="sin",
-    mask = 'circle',
-    size=size_mask,
-    sf=spatial_freq,
-    contrast=contrast_mask,
-    ori=left,  
-    color = sti_color,
-)
+def create_grating(resolution, spatial_frequency): 
+    x = np.linspace(-np.pi, np.pi, resolution)
+    sinusoidal = np.sin(spatial_frequency * x)  # 1D sinusoidal wave
+    return np.outer(sinusoidal, np.ones_like(sinusoidal))  # Extend to 2D
 
-mask_right = visual.GratingStim(
-    win=win,
-    tex="sin",
-    mask = 'circle',
-    size=size_mask,
-    sf=spatial_freq,
-    contrast=contrast_mask,
-    ori=right, 
-    color = sti_color,
+def combine(mask_inner, mask_outer):
+    combined = 2 * mask_inner + mask_outer
+    combined = 2 * (combined - np.min(combined)) / (np.max(combined) - np.min(combined)) - 1
+    return combined
+
+mask_inner = create_mask_inner(mask_size, inner_ratio)
+mask_outer = create_grating(mask_size, mask_sf)
+
+mask = combine(mask_inner, mask_outer) * mask_contrast
+prime = create_grating(prime_size, prime_sf)
+prime = (2 * (prime - np.min(prime)) / (np.max(prime) - np.min(prime)) - 1) * prime_contrast
+
+# Create a PsychoPy ImageStim
+mask_left = visual.ImageStim(
+    win,
+    image= mask,
+    size=mask_size,  # Match the resolution
+    units="pix",
+    interpolate=True,  # Smooth rendering
+    colorSpace="rgb",  # Ensure the range is [-1, 1]
+    mask='circle',
+    ori=30
 )
 
+mask_right = visual.ImageStim(
+    win,
+    image= mask,
+    size=mask_size,  # Match the resolution
+    units="pix",
+    interpolate=True,  # Smooth rendering
+    colorSpace="rgb",  # Ensure the range is [-1, 1]
+    mask='circle',
+    ori=-30
+)
 
-# Mask inner (dimmer central region where prime is located)
-mask_inner = visual.GratingStim(
-    win=win,
-    tex="sin", 
-    mask = 'gauss',
-    phase=0.25,
-    size=size_prime,
-    sf=spatial_freq,
-    contrast=contrast_mask,
-    ori=left,  
-    color = sti_color,
+prime_left = visual.ImageStim(
+    win,
+    image= prime,
+    size=prime_size,  # Match the resolution
+    units="pix",
+    interpolate=True,  # Smooth rendering
+    colorSpace="rgb",  # Ensure the range is [-1, 1]
+    mask='circle',
+    ori=30
+)
+
+prime_right = visual.ImageStim(
+    win,
+    image= prime,
+    size=prime_size,  # Match the resolution
+    units="pix",
+    interpolate=True,  # Smooth rendering
+    colorSpace="rgb",  # Ensure the range is [-1, 1]
+    mask='circle',
+    ori=-30
 )
 
 # Define a function for a single trial
@@ -131,19 +144,19 @@ def run_trial(block_num, trial_num, prime_direction, mask_direction, ISI, positi
         true = prime_direction
     # Set the orientation of the prime used in this trial
     prime = prime_left if prime_direction == 'left' else prime_right
-    mask_outer = mask_left if mask_direction == 'left' else mask_right
+    mask = mask_left if mask_direction == 'left' else mask_right
     
     # Set position for both prime and mask either at top or bottom of the fixation points
-    pos = (0, 130) if position == 'top' else (0, -130)
+    pos = (0, 200) if position == 'top' else (0, -200)
     prime.pos = pos
-    mask_outer.pos = pos
-    mask_inner.pos = pos
+    mask.pos = pos
+
 
     # Include fixation and wait text point to the prime
     prime = visual.BufferImageStim(win, stim=[prime, fixation])
 
     # Combine the two components of the mask and fixation and wait text together
-    mask = visual.BufferImageStim(win, stim=[mask_outer, mask_inner, fixation])
+    mask = visual.BufferImageStim(win, stim=[mask, fixation])
     
     # Wait screen
     wait = visual.BufferImageStim(win, stim=[fixation])
@@ -328,9 +341,7 @@ event.waitKeys(keyList=['space'])
 
 # instruction1
 mask_left.pos = (0,-300)
-mask_inner.pos = (0,-300)
 mask_left.draw()
-mask_inner.draw()
 instruction_text1.draw()
 win.flip()
 event.waitKeys(keyList=['space'])
@@ -346,9 +357,7 @@ event.waitKeys(keyList=['space'])
 # instruction2
 prime_right.pos = (0,-300)
 mask_left.pos = (0,-300)
-mask_inner.pos = (0,-300)
 mask_left.draw()
-mask_inner.draw()
 instruction_text2.draw()
 prime_right.draw()
 win.flip()
