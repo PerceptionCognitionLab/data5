@@ -38,7 +38,7 @@ practice_num = 20
 bg_color = np.array([1, 1, 1]) * 3/4
 sti_color = np.array([-1, -1, -1]) * 3/4
 
-# Set up the window
+# Set up the window 
 win = visual.Window(units="pix", size=(1920, 1080), color= bg_color, fullscr=True)
 
 # Text stimuli

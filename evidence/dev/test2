@@ -5,6 +5,7 @@ from psychopy import visual, core, event, prefs
 import expLib51 as exlib
 import numpy as np
 import os
+from psychopy import visual, core, monitors
 
 # region
 refreshRate=165
@@ -13,15 +14,22 @@ trialClock=core.Clock()
 expName="mp1"
 dbConf=exlib.data5
 seed = random.randrange(1e6)
-[pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
-#[pid,sid,fname] = [1,1,'Me.dat']
+#[pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
+[pid,sid,fname] = [1,1,'Me.dat']
 fptr = open(fname,'w')
 # endregion
 
+#define monitor
+monitor = monitors.Monitor("MyMonitor")
+monitor.setSizePix((1920, 1080))
+monitor.setWidth(150)
+monitor.setDistance(100)
+monitor.saveMon()
+
 # Experiment settings
 # region
-num_blocks = 1
-n_trials_per_condition = 3
+num_blocks = 3
+n_trials_per_condition = 1
 ISI_frames = [0,4,8,12,16,28]
 # ISI_frames = [0, 2, 4, 6, 8, 10, 12] # Vorberg's
 num_trials_per_block = 144
@@ -29,60 +37,34 @@ primeFrame = 2
 maskFrame = 7   # to find dissociation
 # maskFrame = 20
 gap = 0.2
-practice_num = 20
+practice_num = 1
 # endregion
 
 # Define stimuli: primes, masks, text
 #region
 # Color
-bg_color = np.array([1, 1, 1]) * 3/4
-sti_color = np.array([-1, -1, -1]) * 3/4
+bg_color = 'white'
+sti_color = 'black'
 
 # Set up the window
-win = visual.Window(units="pix", size=(1920, 1080), color= bg_color, fullscr=True)
+win = visual.Window(size = (1920,1080), monitor = monitor, units = "deg", color = (0,0,0), fullscr = False, screen = 1)
 
 # Text stimuli
-welcome_text1 = visual.TextStim(win, text='Welcome to the experiment! Press spacebar to continue.', pos = (0,0), color = sti_color)
-welcome_text2 = visual.TextStim(win, text='The exerpiment contain two sessions. Each session has three blocks, which will last around 15 minutes.\n\nPress space bar to start the first session.', pos = (0,0), color = sti_color)
-instruction_text1 = visual.TextStim(win, text='In this session, a flash arrow (shown as below) will be displayed on the screen. Your task is to identify the orientation of the arrow as soon as you see it.\n\nIf you think the arrow points to left. press "x", if you think the arrow points to right, press "m".\n\nPress spacebar to continue', pos = (0,0), color = sti_color)
-rest_text=  visual.TextStim(win, text='Session 1 ends! You can have some rest before starting session 2.\n\nPress spacebar to start session 2.', pos = (0,0), color = sti_color)
-instruction_text2 = visual.TextStim(win, text='You may have notice that there is a smaller arrow appears at the center of the main arrow (shown as below). In this session, you are required to identify the orientation of that smaller arrow as soon as you see it while neglecting the main arrow.\n\nIf you think the arrow points to left. press "x", if you think the arrow points to right, press "m".\n\nThis session is more difficult than the first session. Please try you best. Press spacebar to continue', pos = (0,0), color = sti_color)
-goodbye_text = visual.TextStim(win, text='Experiment finished! Thank you for your participation.\n\nPress spacebar to exit', pos=(0, 0), color=sti_color)
-start_practice_text = visual.TextStim(win, text='We will begin with some practice trials. We will provide feedback on correctness. Note that in the real experiment there will be no feedback.\n\nPress space to start the practice trials.', pos=(0, 0), color=sti_color)
-end_practice_text = visual.TextStim(win, text='Practice finished.\n\nPress space to start the real experiment.', pos=(0, 0), color=sti_color)
-# Fixation and blank
-fixation = visual.TextStim(win, text='+', pos=(0, 0), color=sti_color, bold = True, height = 40)
+welcome_text1 = visual.TextStim(win, text='Welcome to the experiment! Press space to continue.', pos = (0,0), color = 'black')
+welcome_text2 = visual.TextStim(win, text='The experiment contains two sessions. Each session has three blocks which will last around 15 minutes.\n\nPress space to start the first session.', pos = (0,0), color = sti_color)
+instruction_text1 = visual.TextStim(win, text='In this session, the stiumulus shown below will be flashed on the screen. Your task is to identify the orientation of the outside ring as soon as you see it.\n\nIf you think the ring is rotated towards the top right, press X. If it is rotated to the top right, press M.\n\nPress space to continue', pos = (0,0), color = 'black')
+rest_text=  visual.TextStim(win, text='Session 1 ends! You may take a break before starting session 2.\n\nPress space to continue.', pos = (0,0), color = 'black')
+instruction_text2 = visual.TextStim(win, text= 'In this session, your task is to identify the orientation of the inner circle while neglecting the outer ring.\n\nIf you think the circle is rotated to the left, press X. If it is rotated to the right, press M.\n\nThis session is more difficult than the first session, so please pay close attention. Press space to continue', pos = (0,0), color = 'black')
+goodbye_text = visual.TextStim(win, text='Experiment finished! Thank you for participating!\n\nPress spacebar to exit', pos=(0, 0), color = 'black')
+start_practice_text = visual.TextStim(win, text='We will begin with some practice trials. We will provide feedback on your response. Note that in the real experiment there will be no feedback.\n\nPress space to start the practice trials.', pos=(0, 0), color = 'black')
+end_practice_text = visual.TextStim(win, text='Practice finished.\n\nPress space to start the real experiment.', pos=(0, 0), color = 'black')
 
-# contour not touch
-
-prime_left = visual.ShapeStim(
-    win=win, vertices=[(-90,0),(-70,20),(80,20),(60,0),(80,-20),(-70,-20)],
-    fillColor=sti_color, lineColor=sti_color , size=1)
-prime_right = visual.ShapeStim(
-    win=win, vertices=[(-60,0),(-80,20),(70,20),(90,0),(70,-20),(-80,-20)],
-    fillColor=sti_color, lineColor=sti_color, size=1)
-
-
-# contour touch
-'''
-prime_left = visual.ShapeStim(
-    win=win, vertices=[(-105,0),(-75,30),(105,30),(75,0),(105,-30),(-75,-30)],
-    fillColor=sti_color, lineColor=sti_color , size=1)
-prime_right = visual.ShapeStim(
-    win=win, vertices=[(-75,0),(-105,30),(75,30),(105,0),(75,-30),(-105,-30)],
-    fillColor=sti_color, lineColor=sti_color, size=1)
-'''
-
-mask_left = visual.ShapeStim(
-    win=win, vertices=[(-165, 0), (-120, 45), (120, 45), (120, -45), (-120, -45)],
-    fillColor=sti_color , lineColor=sti_color , size=1)
-mask_right = visual.ShapeStim(
-    win=win, vertices=[(-120, 45), (120, 45), (165,0), (120, -45), (-120, -45)],
-    fillColor=sti_color , lineColor=sti_color , size=1)
-mask_inner = visual.ShapeStim(
-    win=win, vertices=[(-105,30),(105,30),(90,15),(105,0),(90,-15),(105,-30),(-105,-30),(-90,-15),(-105,0),(-90,15)],
-    fillColor=bg_color, lineColor=bg_color, size=1)
-#endregion
+fixation = visual.TextStim(win, text='+', pos=(0, 0), color = 'black', bold = True, height = 2)
+prime_left = visual.GratingStim(win = win, tex = "sin", size = 5, sf = 0.75, ori = -30, pos = (0,0), contrast = 1, mask = "gauss")
+prime_right = visual.GratingStim(win = win, tex = "sin", size = 5, sf = 0.75, ori = 30, pos = (0,0), contrast = 1, mask = "gauss")
+mask_left= visual.GratingStim(win = win, tex = "sin", size = 7.5, sf = 0.75, ori = -30, pos = (0,0), contrast = 1, mask = "gauss")
+mask_right = visual.GratingStim(win = win, tex = "sin", size = 7.5, sf = 0.75, ori = 30, pos = (0,0), contrast = 1, mask = "gauss")
+blur_region = visual.GratingStim(win = win, tex = None, size = 12, sf = 0, pos = (0,0), contrast = 0.2, mask = "gauss", color = (0,0,0))
 
 # Define a function for a single trial
 def run_trial(block_num, trial_num, prime_direction, mask_direction, ISI, position, provide_feedback=False, goal = None): 
@@ -93,19 +75,19 @@ def run_trial(block_num, trial_num, prime_direction, mask_direction, ISI, positi
         true = prime_direction
     # Set the orientation of the prime used in this trial
     prime = prime_left if prime_direction == 'left' else prime_right
-    mask_outer = mask_left if mask_direction == 'left' else mask_right
+    mask = mask_left if mask_direction == 'left' else mask_right
     
     # Set position for both prime and mask either at top or bottom of the fixation points
-    pos = (0, 130) if position == 'top' else (0, -130)
+    pos = (0, 12) if position == 'top' else (0, -12)
     prime.pos = pos
-    mask_outer.pos = pos
-    mask_inner.pos = pos
+    mask.pos = pos
+    blur_region.pos = pos
 
     # Include fixation and wait text point to the prime
     prime = visual.BufferImageStim(win, stim=[prime, fixation])
 
     # Combine the two components of the mask and fixation and wait text together
-    mask = visual.BufferImageStim(win, stim=[mask_outer, mask_inner, fixation])
+    mask = visual.BufferImageStim(win, stim=[mask, blur_region, fixation])
     
     # Wait screen
     wait = visual.BufferImageStim(win, stim=[fixation])
@@ -252,12 +234,12 @@ def run_block(block_num, n_trials_per_condition, ISI_frames, goal = None):
 
 # Define a function to run the full experiment with multiple blocks
 def run_experiment(num_blocks, n_trials_per_condition, ISI_frames, goal = None):
-    # Run the practice block first
+    # Run the practice block firstcolor
     print("Running Practice Block...")
     quit_experiment = run_practice_block(goal = goal)
     if quit_experiment:
         print("Experiment quit by user during practice.")
-        return
+        win.close()
 
     # Run the main experimental blocks
     for block_num in range(1, num_blocks + 1):
@@ -289,10 +271,12 @@ win.flip()
 event.waitKeys(keyList=['space'])
 
 # instruction1
-mask_left.pos = (0,-300)
-mask_inner.pos = (0,-300)
+mask_left.pos = (0,-14)
+blur_region.pos = (0,-14)
+prime_right.pos = (0,-14)
 mask_left.draw()
-mask_inner.draw()
+blur_region.draw()
+prime_right.draw()
 instruction_text1.draw()
 win.flip()
 event.waitKeys(keyList=['space'])
@@ -306,11 +290,11 @@ win.flip()
 event.waitKeys(keyList=['space'])
 
 # instruction2
-prime_right.pos = (0,-300)
-mask_left.pos = (0,-300)
-mask_inner.pos = (0,-300)
+prime_right.pos = (0,-14)
+mask_left.pos = (0,-14)
+blur_region.pos = (0,-14)
 mask_left.draw()
-mask_inner.draw()
+blur_region.draw()
 instruction_text2.draw()
 prime_right.draw()
 win.flip()
@@ -327,7 +311,7 @@ event.waitKeys(keyList=['space'])
 # Record settings and close the window
 hz=round(win.getActualFrameRate())
 [resX,resY]=win.size
-exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
+#exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
 
 win.close()
 # Get everything in the store file and close the file

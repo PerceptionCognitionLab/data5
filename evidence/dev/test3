@@ -2,21 +2,83 @@ from psychopy import visual, core, monitors
 import numpy as np
 
 monitor = monitors.Monitor("MyMonitor")
-monitor.setSizePix((1920, 1080))
-monitor.setWidth(250)
-monitor.setDistance(100)
-monitor.saveMon()
-
 
 win = visual.Window(size = (1920,1080), monitor = monitor, units = "deg", color = (0,0,0), fullscr = False, screen = 1)
-gabor = visual.GratingStim(win = win, tex = "sin", size = 5, sf = 0.75, ori = -30, pos = (-3.5,0), contrast = 1, mask = "gauss")
-mask = visual.GratingStim(win = win, tex = "sin", size = 7.5, sf = 0.75, ori = 30, pos = (-3.5,0), contrast = 1, mask = "gauss")
-blur_region = visual.GratingStim(win = win, tex = None, size = 12, sf = 0, pos = (-3.5,0), contrast = 0.2, mask = "gauss", color = (0,0,0))
+
+gabor = visual.GratingStim(win = win, tex = "sin", size = 5, sf = 0.75, ori = 30, pos = (0,0), contrast = 1, mask = "gauss")
+mask = visual.GratingStim(win = win, tex = "sin", size = 7.5, sf = 0.75, ori = 30, pos = (0,0), contrast = 1, mask = "gauss")
+blur_region = visual.GratingStim(win = win, tex = None, size = 12, sf = 0, pos = (0,0), contrast = 0.2, mask = "gauss", color = (0,0,0))
+fixation = visual.TextStim(win, text='+', pos=(0, 0), color = 'black', bold = True, height = 2)
 
 mask.draw()
 blur_region.draw()
+fixation.draw()
 gabor.draw()
 
 win.flip()
-core.wait(5)
+core.wait(2)
 win.close()
+
+# import sys
+# sys.path.insert(0, '/home/exp/specl-exp/lib/data5/')
+# import random
+# from psychopy import visual, core, event, prefs
+# import expLib51 as exlib
+# import numpy as np
+# import os
+# from psychopy import visual, core, monitors
+
+# # region
+# refreshRate=165
+# exlib.setRefreshRate(refreshRate)
+# trialClock=core.Clock()
+# expName="mp1"
+# dbConf=exlib.data5
+# seed = random.randrange(1e6)
+# #[pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
+# [pid,sid,fname] = [1,1,'Me.dat']
+# fptr = open(fname,'w')
+# # endregion
+
+# #define monitor
+# monitor = monitors.Monitor("MyMonitor")
+# monitor.setSizePix((1920, 1080))
+# monitor.setWidth(150)
+# monitor.setDistance(100)
+# monitor.saveMon()
+
+# # Experiment settings
+# # region
+# num_blocks = 1
+# n_trials_per_condition = 3
+# ISI_frames = [0,4,8,12,16,28]
+# # ISI_frames = [0, 2, 4, 6, 8, 10, 12] # Vorberg's
+# num_trials_per_block = 4
+# gaborFrame = 2
+# maskFrame = 7   # to find dissociation
+# # maskFrame = 20
+# gap = 0.2
+# practice_num = 20
+# # endregion
+
+# # Define stimuli: primes, masks, text
+# #region
+# # Color
+# bg_color = np.array([1, 1, 1]) * 3/4
+# sti_color = 'black'
+
+# # Set up the window
+# win = visual.Window(size = (1920,1080), monitor = monitor, units = "deg", color = (np.array([1, 1, 1]) * 2/4), fullscr = False, screen = 1)
+
+# gabor_left = visual.GratingStim(win = win, tex = "sin", size = 5, sf = 0.75, ori = -30, pos = (0,0), contrast = 1, mask = "gauss")
+# gabor_right = visual.GratingStim(win = win, tex = "sin", size = 5, sf = 0.75, ori = 30, pos = (0,0), contrast = 1, mask = "gauss")
+# mask_left= visual.GratingStim(win = win, tex = "sin", size = 7.5, sf = 0.75, ori = -30, pos = (0,0), contrast = 1, mask = "gauss")
+# mask_right = visual.GratingStim(win = win, tex = "sin", size = 7.5, sf = 0.75, ori = 30, pos = (0,0), contrast = 1, mask = "gauss")
+# blur_region = visual.GratingStim(win = win, tex = None, size = 12, sf = 0, pos = (0,0), contrast = 0.2, mask = "gauss", color = (0,0,0))
+
+# stim = visual.BufferImageStim(win, stim=[mask_right])
+
+# stim.draw()
+# win.flip()
+# core.wait(2)
+# win.close()
