@@ -40,21 +40,22 @@ radAngle = math.radians(degAngle)
 xpos = 300*math.cos(radAngle)
 ypos = 300*math.sin(radAngle)
 
-
 #condition
 cond=0
 pickCond=rng.integers(0,2,1)
-if pickCond == 0: #congruent condition
+#congruent condition
+if pickCond == 0: 
     xcue = 300*math.cos(radAngle)
     ycue = 300*math.sin(radAngle)
-else: #incongruent condition 
+#incongruent condition 
+else:
     xcue = -300*math.cos(radAngle)
     ycue = -300*math.sin(radAngle) 
 
 
 frames.append(visual.TextStim(win,"+", height = 30))
 frames.append(visual.TextStim(win, " "))
-frames.append(visual.TextStim(win, "-", pos=(xcue,ycue), height=50))
+frames.append(visual.BufferImageStim(win, stim=[visual.TextStim(win, "/"), visual.TextStim(win, "-")]), pos=(xcue,ycue), height=50)
 frames.append(visual.TextStim(win, " "))
 frames.append(visual.TextStim(win,stim1, pos=(xpos, ypos), height=30))
 frames.append(visual.TextStim(win,"#", pos=(xpos,ypos), height=30))
@@ -63,7 +64,7 @@ frames.append(visual.TextStim(win, "@", pos=(xpos,ypos), height=30))
 message=visual.TextStim(win,"Press a key to start")
 message.draw()
 win.flip()
-event.waitKeys()
+event.waitKeys() 
 
 stamps=el.runFrames(win,frames,frameDurations,trialClock)
 
