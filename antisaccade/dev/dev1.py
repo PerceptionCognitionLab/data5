@@ -52,10 +52,12 @@ else:
     xcue = -300*math.cos(radAngle)
     ycue = -300*math.sin(radAngle) 
 
+cue1 = visual.Line(win, start=(xcue,ycue+10), end=(xcue,ycue+2)) #arbitraty location, just trying to get them to present simultaneously 
+cue2 = visual.Line(win, start=(xcue,ycue-10), end=(xcue,ycue-2))
 
 frames.append(visual.TextStim(win,"+", height = 30))
 frames.append(visual.TextStim(win, " "))
-frames.append(visual.BufferImageStim(win, stim=[visual.TextStim(win, "/"), visual.TextStim(win, "-")]), pos=(xcue,ycue), height=50)
+frames.append(visual.BufferImageStim(win, stim(cue1,cue2)))
 frames.append(visual.TextStim(win, " "))
 frames.append(visual.TextStim(win,stim1, pos=(xpos, ypos), height=30))
 frames.append(visual.TextStim(win,"#", pos=(xpos,ypos), height=30))
