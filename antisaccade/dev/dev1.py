@@ -20,60 +20,68 @@ win=visual.Window(units= "pix",
                      color=[-1,-1,-1],
                      fullscr = True)
 
+gPar={"radius":150,
+      "r":[125,140,160,175],
+      "let":['X','M'],
+      "mask":['@','#']}
+
 
 frames=[]
-frameDurations=[82,82,49,2,30,6,6]
-
+# frameDurations=[82,82,49,2,30,6,6]
+frameDurations=[100,100,100,0,100,100,100]
 rng = random.default_rng()
+def d2r(theta):
+    return(math.radians(theta))
 
-#stimulus
-stim1 = 0
-stim = rng.integers(0,2,1)
-if stim == 0:
-    stim1 = 'M'
-else:
-    stim1 = 'X'
+lPar={"cond":0,"angle":240,"target":0,"dur":200}
 
-#stim angle
-degAngle = rng.integers(0,360,1)
-radAngle = math.radians(degAngle)
-xpos = 300*math.cos(radAngle)
-ypos = 300*math.sin(radAngle)
+def runTrial(lPar):
 
-#condition
-cond=0
-pickCond=rng.integers(0,2,1)
-#congruent condition
-if pickCond == 0: 
-    xcue = 300*math.cos(radAngle)
-    ycue = 300*math.sin(radAngle)
-#incongruent condition 
-else:
-    xcue = -300*math.cos(radAngle)
-    ycue = -300*math.sin(radAngle) 
+    if lPar["cond"]:
+        cueAngle = (lPar["angle"]+180)%360
+    else:
+        cueAngle =  lPar["angle"]
+    
+    frameDurations[3]=lPar["dur"]
+    frames.append(visual.TextStim(win,"+", height = 30))
+    frames.append(visual.TextStim(win, "BLANK"))
+    start0=[gPar["r"][0]*math.cos(d2r(cueAngle)),gPar["r"][0]*math.sin(d2r(cueAngle))]
+    end0=[gPar["r"][1]*math.cos(d2r(cueAngle)),gPar["r"][1]*math.sin(d2r(cueAngle))]
+    start1=[gPar["r"][2]*math.cos(d2r(cueAngle)),gPar["r"][2]*math.sin(d2r(cueAngle))]
+    end1=[gPar["r"][3]*math.cos(d2r(cueAngle)),gPar["r"][3]*math.sin(d2r(cueAngle))]
+    line0=visual.Line(win,start0,end0)
+    line1=visual.Line(win,start1,end1)
+    frames.append(visual.BufferImageStim(win,stim=(line0, line1)))
+    frames.append(visual.TextStim(win, "BLANK2"))
+    pos=(gPar["radius"]*math.cos(d2r(lPar["angle"])),gPar["radius"]*math.sin(d2r(lPar["angle"])))
+    frames.append(visual.TextStim(win, gPar["let"][lPar["target"]],pos=pos))
+    frames.append(visual.TextStim(win, gPar["mask"][0],pos=pos))
+    frames.append(visual.TextStim(win, gPar["mask"][1],pos=pos))
+    stamps=el.runFrames(win,frames,frameDurations,trialClock)
+    event.waitKeys()
 
-cue1 = visual.Line(win, start=(xcue,ycue+10), end=(xcue,ycue+2)) #arbitraty location, just trying to get them to present simultaneously 
-cue2 = visual.Line(win, start=(xcue,ycue-10), end=(xcue,ycue-2))
 
-frames.append(visual.TextStim(win,"+", height = 30))
-frames.append(visual.TextStim(win, " "))
-frames.append(visual.BufferImageStim(win, stim(cue1,cue2)))
-frames.append(visual.TextStim(win, " "))
-frames.append(visual.TextStim(win,stim1, pos=(xpos, ypos), height=30))
-frames.append(visual.TextStim(win,"#", pos=(xpos,ypos), height=30))
-frames.append(visual.TextStim(win, "@", pos=(xpos,ypos), height=30)) 
+def runBlock(cond):
+    for i in range(10):
+        lPar["angle"]=
+        lPar["cond"]=cond
+        lPar["target"]=
+        lPar["dur"]=
+        runTrial(lPar)
+
+
 
 message=visual.TextStim(win,"Press a key to start")
 message.draw()
 win.flip()
 event.waitKeys() 
 
-stamps=el.runFrames(win,frames,frameDurations,trialClock)
 
-event.waitKeys()
+
+runBlock(0)
 win.close()
 
-print("Difference Between Time Stamps:\n",np.diff(stamps),"\n")
-print("Difference Between Frames:\n",el.actualFrameDurations(frameDurations,stamps))
+# print("Difference Between Time Stamps:\n",np.diff(stamps),"\n")
+# print("Difference Between Frames:\n",el.actualFrameDurations(frameDurations,stamps))
 core.quit()
 

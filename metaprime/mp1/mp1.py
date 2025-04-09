@@ -14,15 +14,15 @@ expName="mp1"
 dbConf=exlib.data5
 seed = random.randrange(1e6)
 # [pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
-# [pid,sid,fname] = [1,1,'Me.dat']
-# fptr = open(fname,'w')
+[pid,sid,fname] = [1,1,'Me.dat']
+fptr = open(fname,'w')
 # endregion
 
 # Experiment settings
 # region
 num_blocks = 3
 n_trials_per_condition = 3
-ISI_frames = [0,4,8,12,16,28]
+ISI_frames = [6]
 # ISI_frames = [0, 2, 4, 6, 8, 10, 12] # Vorberg's
 num_trials_per_block = 144
 primeFrame = 2
