@@ -29,15 +29,21 @@ gPar={"radius":150,
 frames=[]
 # frameDurations=[82,82,49,2,30,6,6]
 frameDurations=[100,100,100,0,100,100,100]
+
 rng = random.default_rng()
+theta=0
+cond=0 
+target=0
+
 def d2r(theta):
     return(math.radians(theta))
 
-lPar={"cond":0,"angle":240,"target":0,"dur":200}
+lPar={"cond":cond,"angle":theta,"target":target,"dur":200}
+
 
 def runTrial(lPar):
 
-    if lPar["cond"]:
+    if lPar["cond"]==1:
         cueAngle = (lPar["angle"]+180)%360
     else:
         cueAngle =  lPar["angle"]
@@ -45,6 +51,7 @@ def runTrial(lPar):
     frameDurations[3]=lPar["dur"]
     frames.append(visual.TextStim(win,"+", height = 30))
     frames.append(visual.TextStim(win, "BLANK"))
+    #cue
     start0=[gPar["r"][0]*math.cos(d2r(cueAngle)),gPar["r"][0]*math.sin(d2r(cueAngle))]
     end0=[gPar["r"][1]*math.cos(d2r(cueAngle)),gPar["r"][1]*math.sin(d2r(cueAngle))]
     start1=[gPar["r"][2]*math.cos(d2r(cueAngle)),gPar["r"][2]*math.sin(d2r(cueAngle))]
@@ -52,29 +59,40 @@ def runTrial(lPar):
     line0=visual.Line(win,start0,end0)
     line1=visual.Line(win,start1,end1)
     frames.append(visual.BufferImageStim(win,stim=(line0, line1)))
-    frames.append(visual.TextStim(win, "BLANK2"))
+    frames.append(visual.TextStim(win, "BLANK2")) #2-up/1-down
+    #target
     pos=(gPar["radius"]*math.cos(d2r(lPar["angle"])),gPar["radius"]*math.sin(d2r(lPar["angle"])))
     frames.append(visual.TextStim(win, gPar["let"][lPar["target"]],pos=pos))
+    #masks
     frames.append(visual.TextStim(win, gPar["mask"][0],pos=pos))
     frames.append(visual.TextStim(win, gPar["mask"][1],pos=pos))
     stamps=el.runFrames(win,frames,frameDurations,trialClock)
-    event.waitKeys()
+    #event.waitKeys()
 
 
 def runBlock(cond):
-    for i in range(10):
-        lPar["angle"]=
+    for i in range(2):
+        theta = rng.integers(0,360,1)
+        lPar["angle"]=theta
+
+        cond = rng.integers(0,2,1)
         lPar["cond"]=cond
-        lPar["target"]=
-        lPar["dur"]=
+
+        target = 0 #rng.integers(0,2,1)
+        lPar["target"]=target
+        
+        
+        #lPar["dur"]=
+        
         runTrial(lPar)
 
 
 
-message=visual.TextStim(win,"Press a key to start")
-message.draw()
-win.flip()
-event.waitKeys() 
+
+#message=visual.TextStim(win,"Press a key to start")
+#message.draw()
+#win.flip()
+#event.waitKeys() 
 
 
 
