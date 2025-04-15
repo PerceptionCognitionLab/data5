@@ -8,6 +8,7 @@ import sys
 import math
 sys.path.insert(0, '/home/exp/specl-exp/lib/data5/')
 import expLib51 as el
+from types import SimpleNamespace
 
 
 scale=400
@@ -20,10 +21,11 @@ win=visual.Window(units= "pix",
                      color=[-1,-1,-1],
                      fullscr = True)
 
-gPar={"radius":150,
+gParDict={"radius":150,
       "r":[125,140,160,175],
       "let":['X','M'],
       "mask":['@','#']}
+gPar = SimpleNamespace(**gParDict)
 
 
 frames=[]
@@ -38,61 +40,67 @@ target=0
 def d2r(theta):
     return(math.radians(theta))
 
-lPar={"cond":cond,"angle":theta,"target":target,"dur":200}
+lParDict={"cond":cond,
+          "angle":theta,
+          "target":target,
+          "dur":200}
+lPar = SimpleNamespace(**lParDict)
+
 
 
 def runTrial(lPar):
 
-    if lPar["cond"]==1:
-        cueAngle = (lPar["angle"]+180)%360
+    if lPar.cond==1:
+        cueAngle = (lPar.angle+180)%360
     else:
-        cueAngle =  lPar["angle"]
+        cueAngle =  lPar.angle
     
-    frameDurations[3]=lPar["dur"]
+    frameDurations[3]=lPar.dur
     frames.append(visual.TextStim(win,"+", height = 30))
     frames.append(visual.TextStim(win, "BLANK"))
     #cue
-    start0=[gPar["r"][0]*math.cos(d2r(cueAngle)),gPar["r"][0]*math.sin(d2r(cueAngle))]
-    end0=[gPar["r"][1]*math.cos(d2r(cueAngle)),gPar["r"][1]*math.sin(d2r(cueAngle))]
-    start1=[gPar["r"][2]*math.cos(d2r(cueAngle)),gPar["r"][2]*math.sin(d2r(cueAngle))]
-    end1=[gPar["r"][3]*math.cos(d2r(cueAngle)),gPar["r"][3]*math.sin(d2r(cueAngle))]
+    start0=[gPar.r[0]*math.cos(d2r(cueAngle)),gPar.r[0]*math.sin(d2r(cueAngle))]
+    end0=[gPar.r[1]*math.cos(d2r(cueAngle)),gPar.r[1]*math.sin(d2r(cueAngle))]
+    start1=[gPar.r[2]*math.cos(d2r(cueAngle)),gPar.r[2]*math.sin(d2r(cueAngle))]
+    end1=[gPar.r[3]*math.cos(d2r(cueAngle)),gPar.r[3]*math.sin(d2r(cueAngle))]
     line0=visual.Line(win,start0,end0)
     line1=visual.Line(win,start1,end1)
     frames.append(visual.BufferImageStim(win,stim=(line0, line1)))
     frames.append(visual.TextStim(win, "BLANK2")) #2-up/1-down
     #target
-    pos=(gPar["radius"]*math.cos(d2r(lPar["angle"])),gPar["radius"]*math.sin(d2r(lPar["angle"])))
-    frames.append(visual.TextStim(win, gPar["let"][lPar["target"]],pos=pos))
+    pos=(gPar.radius*math.cos(d2r(lPar.angle)),gPar.radius*math.sin(d2r(lPar.angle)))
+    frames.append(visual.TextStim(win, gPar.let[lPar.target],pos=pos))
     #masks
-    frames.append(visual.TextStim(win, gPar["mask"][0],pos=pos))
-    frames.append(visual.TextStim(win, gPar["mask"][1],pos=pos))
+    frames.append(visual.TextStim(win, gPar.mask[0],pos=pos))
+    frames.append(visual.TextStim(win, gPar.mask[1],pos=pos))
     stamps=el.runFrames(win,frames,frameDurations,trialClock)
-    #event.waitKeys()
+    event.waitKeys()
 
 
 def runBlock(cond):
     for i in range(2):
         theta = rng.integers(0,360,1)
-        lPar["angle"]=theta
+        lPar.angle=theta
 
         cond = rng.integers(0,2,1)
-        lPar["cond"]=cond
+        lPar.cond=cond
 
-        target = 0 #rng.integers(0,2,1)
-        lPar["target"]=target
+        target = rng.integers(0,2,1)
+        target = int(target)
+        lPar.target=target
         
         
-        #lPar["dur"]=
+        #lPar.dur=
         
         runTrial(lPar)
 
 
 
 
-#message=visual.TextStim(win,"Press a key to start")
-#message.draw()
-#win.flip()
-#event.waitKeys() 
+message=visual.TextStim(win,"Press a key to start")
+message.draw()
+win.flip()
+event.waitKeys() 
 
 
 
