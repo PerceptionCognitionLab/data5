@@ -14,12 +14,6 @@ pid=1
 sid=1
 fname="test"
 fptr=open(fname,"w")
-blk=0
-trl=0
-
-cond=0
-theta=0
-target=0
 
 scale=400
 
@@ -31,41 +25,46 @@ win=visual.Window(units= "pix",
                      color=[-1,-1,-1],
                      fullscr = True)
 
+#frameDurations=[82,82,6,0,100,6,6]
+
 gParDict={"radius":150,
       "r":[125,140,160,175],
       "let":['X','M'],
-      "mask":['@','#']}
+      "mask":['@','#'],
+      "abortKey":'9',
+      "keyList":['x','m','9']
+      }
 gPar = SimpleNamespace(**gParDict)
 
-lParDict={"cond":cond,
-          "angle":theta,
-          "target":target,
-          "dur":60}
+lParDict={"cond":0,
+          "angle":0,
+          "target":0,
+          "dur":100}
 lPar = SimpleNamespace(**lParDict)
 
-
-frameDurations=[82,82,49,lPar.dur,30,6,6]
 rng = random.default_rng()
 
 def d2r(theta):
     return(math.radians(theta))
 
-def getResp(abortKey='9'):
-    keys=event.getKeys(keyList=['x','m',abortKey],timeStamped=trialClock)
+def getResp():
+    keys=event.getKeys(keyList=gPar.keyList,timeStamped=trialClock)
     if len(keys)==0:
-        keys=event.waitKeys(keyList=('x','m',abortKey),timeStamped=trialClock)
+        keys=event.waitKeys(keyList=gPar.keyList,timeStamped=trialClock)
     resp=keys[0][0]
     rt=keys[0][1]
-    if resp==abortKey:
+    if resp==gPar.abortKey:
         fptr.close()
         win.close()
         core.quit()   
-    resp = int(resp=='m')
-    return([resp,rt])
+    resp = int(resp==gPar.keyList[1])
+    return([resp,round(rt,3)])
 
-def runTrial(lPar,trl):
-
+def runTrial(lPar):
     frames=[]
+    frameDurations=[82,82,6,lPar.dur,100,6,6]
+    #frameDurations[3]=lPar.dur
+
     if lPar.cond==1:
         cueAngle = (lPar.angle+180)%360
     else:
@@ -90,26 +89,31 @@ def runTrial(lPar,trl):
     frames.append(visual.TextStim(win, gPar.mask[1],pos=pos))
     stamps=el.runFrames(win,frames,frameDurations,trialClock)
     ans=getResp()
-    return(ans,trl)
+    return(ans)
 
 
 def runBlock(blk):
-    blk+=1
+    lPar.cond=1
 
-    cond = rng.integers(0,2,1)
-    lPar.cond=cond
+    for trl in range(10):
 
-    for i in range(3):
-        trl=i
         theta = rng.integers(0,360,1)
         lPar.angle=theta
 
-        target = int(rng.integers(0,2,1))
-        lPar.target=target
+        lPar.target = int(rng.integers(0,2,1))
 
-        ans=runTrial(lPar,trl)
+        [resp,rt]=runTrial(lPar)
 
-        print(pid,sid,blk,trl,cond,gPar.let[lPar.target],lPar.dur,ans)
+        if (resp==lPar.target)&(lPar.dur>0):
+            lPar.dur = lPar.dur-20
+        elif (resp==lPar.target)&(lPar.dur==0):
+            lPar.dur=lPar.dur
+        else:
+            lPar.dur = lPar.dur+20
+
+        print(pid,sid,blk,trl,lPar.cond,lPar.target,lPar.dur,resp,rt,sep=", ", file=fptr)
+
+
 
 message=visual.TextStim(win,"Press a key to start")
 message.draw()
@@ -118,7 +122,7 @@ event.waitKeys()
 
 
 
-runBlock(blk)
+runBlock(0)
 win.close()
 fptr.close
 core.quit()
