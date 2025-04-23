@@ -25,8 +25,6 @@ win=visual.Window(units= "pix",
                      color=[-1,-1,-1],
                      fullscr = True)
 
-#frameDurations=[82,82,6,0,100,6,6]
-
 gParDict={"radius":150,
       "r":[125,140,160,175],
       "let":['X','M'],
@@ -39,9 +37,10 @@ gPar = SimpleNamespace(**gParDict)
 lParDict={"cond":0,
           "angle":0,
           "target":0,
-          "dur":100}
+          "dur":20}
 lPar = SimpleNamespace(**lParDict)
 
+frameDurations=[82,82,6,lPar.dur,36,6,6]
 rng = random.default_rng()
 
 def d2r(theta):
@@ -62,8 +61,7 @@ def getResp():
 
 def runTrial(lPar):
     frames=[]
-    frameDurations=[82,82,6,lPar.dur,100,6,6]
-    #frameDurations[3]=lPar.dur
+    frameDurations[3]=lPar.dur
 
     lPar.target = int(rng.integers(0,2,1))
     lPar.angle = rng.integers(0,360,1)
@@ -98,7 +96,7 @@ def runTrial(lPar):
 def runBlock(blk):
     lPar.cond=1
 
-    for trl in range(10):
+    for trl in range(20):
 
         [resp,rt]=runTrial(lPar)   #Trial 1
         print(pid,sid,blk,trl,lPar.cond,lPar.target,lPar.dur,resp,rt,sep=", ", file=fptr)
@@ -109,31 +107,34 @@ def runBlock(blk):
             [resp,rt]=runTrial(lPar)   #Trial 2
             print(pid,sid,blk,trl,lPar.cond,lPar.target,lPar.dur,resp,rt,sep=", ", file=fptr)
             #if they get trial 2 RIGHT
-            if (resp==lPar.target)&(lPar.dur>0):                                                           
-                lPar.dur = lPar.dur-20
-            elif (resp==lPar.target)&(lPar.dur==0):
-                lPar.dur=lPar.dur
+            if (resp==lPar.target)&(lPar.dur>0): 
+                if (lPar.dur-3 < 0):
+                    lPar.dur = 0
+                else:                                                          
+                    lPar.dur = lPar.dur-3
+            elif (resp==lPar.target)&(lPar.dur<=0):
+                lPar.dur=0
             #if they get trial 2 WRONG  
             else:
-                lPar.dur = lPar.dur+20                                                                      
+                lPar.dur = lPar.dur+3                                                                      
         
 
         #if they get trial 1 RIGHT (duration already at 0)
-        elif (resp==lPar.target)&(lPar.dur==0):
+        elif (resp==lPar.target)&(lPar.dur<=0):
             #run another trial
             [resp,rt]=runTrial(lPar)   #Trial 2
             print(pid,sid,blk,trl,lPar.cond,lPar.target,lPar.dur,resp,rt,sep=", ", file=fptr)
             #if they get trial 2 RIGHT
-            if (resp==lPar.target)&(lPar.dur==0):
-                lPar.dur=lPar.dur
+            if (resp==lPar.target)&(lPar.dur<=0):
+                lPar.dur=0
             #if they get trial 2 WRONG  
             else:
-                lPar.dur = lPar.dur+20 #duration increases
+                lPar.dur = lPar.dur+3 #duration increases
 
 
         #if they get trial 1 WRONG     
         else:
-            lPar.dur = lPar.dur+20 #duration increases
+            lPar.dur = lPar.dur+3 #duration increases
 
 
 message=visual.TextStim(win,"Press a key to start")
