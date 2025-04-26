@@ -97,7 +97,7 @@ def runBlock(blk):
     lPar.cond=1
     numCor=0
 
-    for trl in range(10):
+    for trl in range(3):
 
         [resp,rt]=runTrial(lPar)
         print(pid,sid,blk,trl,lPar.cond,lPar.target,lPar.dur,resp,rt,sep=", ", file=fptr)

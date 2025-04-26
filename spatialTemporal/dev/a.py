@@ -28,25 +28,30 @@ seed = random.randrange(1e6)
 random.seed(seed)
 
 blank=visual.TextStim(win,"")
-obj=visual.GratingStim(win,tex='sin',ori=45,sf=1/50,mask='circle',size=300,contrast=.07)
+obj=visual.GratingStim(win,tex='sin',ori=45,sf=1/50,mask='circle',size=300,contrast=.1)
 noise = visual.NoiseStim(win,noiseType="white",blendmode="add",noiseElementSize=1,size=300,mask="circle")
-blank.draw()
-win.flip()
+noise2 = visual.NoiseStim(win,noiseType="white",noiseElementSize=1,size=300,mask="circle")
+combo=visual.BufferImageStim(win,stim=(obj,noise))
 
-a=event.waitKeys()
 
-core.wait(.5)
-obj.draw()
-noise.draw()
-win.flip()
-blank.draw()
 win.flip()
 
 a=event.waitKeys()
 
 
-frames=[blank,obj,blank,noise]
-frameTimes=[100,1,1,1]
+
+
+
+frames=[blank,combo,blank,obj,blank]
+frameTimes=[100,1,165,1,10]
+elib.runFrames(win,frames,frameTimes,trialClock)
+
+
+a=event.waitKeys()
+
+
+frames=[blank,obj,blank,noise2,blank]
+frameTimes=[100,1,60,1,10]
 elib.runFrames(win,frames,frameTimes,trialClock)
 
 a=event.waitKeys()
