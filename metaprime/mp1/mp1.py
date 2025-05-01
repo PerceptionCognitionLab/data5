@@ -55,30 +55,19 @@ fixation = visual.TextStim(win, text='+', pos=(0, 0), color=sti_color, bold = Tr
 
 # contour not touch
 
-prime_left = visual.ShapeStim(
+prime_up = visual.ShapeStim(
     win=win, vertices=[(-90,0),(-70,20),(80,20),(60,0),(80,-20),(-70,-20)],
-    fillColor=sti_color, lineColor=sti_color , size=1)
-prime_right = visual.ShapeStim(
+    fillColor=sti_color, lineColor=sti_color, size=, ori = -90)
+prime_down = visual.ShapeStim(
     win=win, vertices=[(-60,0),(-80,20),(70,20),(90,0),(70,-20),(-80,-20)],
-    fillColor=sti_color, lineColor=sti_color, size=1)
+    fillColor=sti_color, lineColor=sti_color, size=1, ori = 90)
 
-
-# contour touch
-'''
-prime_left = visual.ShapeStim(
-    win=win, vertices=[(-105,0),(-75,30),(105,30),(75,0),(105,-30),(-75,-30)],
-    fillColor=sti_color, lineColor=sti_color , size=1)
-prime_right = visual.ShapeStim(
-    win=win, vertices=[(-75,0),(-105,30),(75,30),(105,0),(75,-30),(-105,-30)],
-    fillColor=sti_color, lineColor=sti_color, size=1)
-'''
-
-mask_left = visual.ShapeStim(
+mask_up = visual.ShapeStim(
     win=win, vertices=[(-165, 0), (-120, 45), (120, 45), (120, -45), (-120, -45)],
-    fillColor=sti_color , lineColor=sti_color , size=1)
-mask_right = visual.ShapeStim(
+    fillColor=sti_color , lineColor=sti_color , size=1, ori = -90)
+mask_down = visual.ShapeStim(
     win=win, vertices=[(-120, 45), (120, 45), (165,0), (120, -45), (-120, -45)],
-    fillColor=sti_color , lineColor=sti_color , size=1)
+    fillColor=sti_color , lineColor=sti_color , size=1, ori = 90)
 mask_inner = visual.ShapeStim(
     win=win, vertices=[(-105,30),(105,30),(90,15),(105,0),(90,-15),(105,-30),(-105,-30),(-90,-15),(-105,0),(-90,15)],
     fillColor=bg_color, lineColor=bg_color, size=1)
