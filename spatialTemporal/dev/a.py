@@ -28,9 +28,9 @@ seed = random.randrange(1e6)
 random.seed(seed)
 
 blank=visual.TextStim(win,"")
-obj=visual.GratingStim(win,tex='sin',ori=45,sf=1/50,mask='circle',size=300,contrast=.1)
-noise = visual.NoiseStim(win,noiseType="white",blendmode="add",noiseElementSize=1,size=300,mask="circle")
-noise2 = visual.NoiseStim(win,noiseType="white",noiseElementSize=1,size=300,mask="circle")
+obj=visual.GratingStim(win,tex='sin',ori=45,sf=1/50,mask='circle',size=256,contrast=.1)
+noise = visual.NoiseStim(win,noiseType="white",blendmode="add",noiseElementSize=1,size=256,mask="circle")
+noise2 = visual.NoiseStim(win,noiseType="white",noiseElementSize=1,size=256,mask="circle")
 combo=visual.BufferImageStim(win,stim=(obj,noise))
 
 
@@ -43,7 +43,7 @@ a=event.waitKeys()
 
 
 frames=[blank,combo,blank,obj,blank]
-frameTimes=[100,1,165,1,10]
+frameTimes=[100,100,165,100,10]
 elib.runFrames(win,frames,frameTimes,trialClock)
 
 
@@ -51,12 +51,19 @@ a=event.waitKeys()
 
 
 frames=[blank,obj,blank,noise2,blank]
-frameTimes=[100,1,60,1,10]
+frameTimes=[100,1,2,1,10]
 elib.runFrames(win,frames,frameTimes,trialClock)
 
 a=event.waitKeys()
 
 
+
+frames=[blank,combo,blank]
+frameTimes=[100,1,10]
+elib.runFrames(win,frames,frameTimes,trialClock)
+
+
+a=event.waitKeys()
 
 fptr.flush()
 hz=round(win.getActualFrameRate())

@@ -15,8 +15,8 @@ trialClock=core.Clock()
 expName="mp2_test"
 dbConf=exlib.data5
 seed = random.randrange(1e6)
-#[pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
-[pid,sid,fname] = [1,1,'Me.dat']
+[pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
+# [pid,sid,fname] = [1,1,'Me.dat']
 fptr = open(fname,'w')
 # endregion
 
@@ -349,7 +349,7 @@ event.waitKeys(keyList=['space'])
 # Record settings and close the window
 hz=round(win.getActualFrameRate())
 [resX,resY]=win.size
-#exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
+exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
 win.close()
 # Get everything in the store file and close the file
 fptr.flush()
