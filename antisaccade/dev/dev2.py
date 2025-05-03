@@ -54,30 +54,29 @@ def getResp():
 
 def runTrial(lPar):
     frames=[]
-    frameDurations=[10,20,lPar.dur,20,20,20]
-    frameDurations[3]=lPar.dur
-
+    frameDurations=[100,200,lPar.dur,60,20,20]
+    
     lPar.target = int(rng.integers(0,2,1))
 
-    
-    #frame 1 START
+    #frame 0 START
     fixX=visual.TextStim(win,"+", height = 30)
     fixL=visual.Rect(win,pos=gPar.pos[0],fillColor=(-1,-1,-1),lineColor=(0,0,0),width=50,height=60)
     fixR=visual.Rect(win,pos=gPar.pos[1],fillColor=(-1,-1,-1),lineColor=(0,0,0),width=50,height=60)
-    frames.append(visual.BufferImageStim(win,stim=(fixX,fixL,fixR)))
-    #frame 2 CUE
-    cue=visual.Rect(win,pos=gPar.pos[0],fillColor=(1,1,1),width=50,height=60)
-    frames.append(visual.BufferImageStim(win,stim=(cue,fixX,fixL,fixR)))
-    #frame 3 SAME AS START BUT 2-UP/1-DOWN
-    frames.append(visual.BufferImageStim(win,stim=(fixX,fixL,fixR)))
-    #frame 4 TARGET
+    cXLR=visual.BufferImageStim(win,stim=(fixX,fixL,fixR))
+    frames.append(cXLR)
+    #frame 1 CUE
+    cue=visual.Rect(win,pos=gPar.pos[1],fillColor=(1,1,1),lineColor=(0,0,0),width=50,height=60)
+    frames.append(visual.BufferImageStim(win,stim=[fixL,fixR,fixX,cue]))
+    #frame 2 SAME AS START BUT 2-UP/1-DOWN
+    frames.append(cXLR)
+    #frame 3 TARGET
     targ=visual.TextStim(win, gPar.let[lPar.target],pos=gPar.pos[0])
-    frames.append(visual.BufferImageStim(win,stim=(targ,fixX,fixL,fixR)))
-    #frames 5/6 MASKS
+    frames.append(visual.BufferImageStim(win,stim=(fixX,fixL,fixR,targ)))
+    #frames 4/5 MASKS
     mask1=visual.TextStim(win, gPar.mask[0],pos=gPar.pos[0])
-    frames.append(visual.BufferImageStim(win,stim=(mask1,fixX,fixL,fixR)))
+    frames.append(visual.BufferImageStim(win,stim=(fixX,fixL,fixR,mask1)))
     mask2=visual.TextStim(win, gPar.mask[1],pos=gPar.pos[0])
-    frames.append(visual.BufferImageStim(win,stim=(mask2,fixX,fixL,fixR)))
+    frames.append(visual.BufferImageStim(win,stim=(fixX,fixL,fixR,mask2)))
     stamps=el.runFrames(win,frames,frameDurations,trialClock)
     ans=getResp()
     return(ans)
@@ -111,9 +110,11 @@ win.flip()
 event.waitKeys()
 
 
-runBlock(1)
+#runBlock(1)
 runTrial(lPar)
 win.close()
 fptr.close
+
+print(gPar)
 core.quit()
 
