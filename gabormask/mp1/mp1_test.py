@@ -13,22 +13,48 @@ def get_input(prompt, default):
         return default
 
 while True:
+
+    prime_ori_abs = 45
+    mask_ori_abs = 45
+    prime_sf = 1.2
+    mask_sf = 1.2
+    prime_contrast = 0.05
+    mask_contrast = 0.05
+    prime_phase = 0
+    mask_phase = 0
+    prime_frame = 1
+    mask_frame = 7
+    SOA_frame = 0
+
+    repetition = 10
+    test_type = 1
+    prime_type = 1 # 1 wihout edge, 2 with edge
+
+    option = get_input("Change settings?\n1.No change\n2.Change orientaion\n3.Change spatial frequency\n4.Change contrast\n5.Change phase\n6.Chnage frames\n7.Change prime type\n8.Change test type", 1)
     # === Parameter Configuration ===
-    print("\n==== Debug Masking Experiment Setup ====")
-    prime_ori_abs = get_input("Prime orientation", 45)
-    mask_ori_abs = get_input("Mask orientation ", 45)
-    prime_sf = get_input("Prime spatial frequency", 1.2)
-    mask_sf = get_input("Mask spatial frequency", 1.2)
-    prime_contrast = get_input("Prime contrast", 0.05)
-    mask_contrast = get_input("Mask contrast", 0.05)
-
-    
-    prime_frame= get_input("prime frames", 1)
-    SOA_frame = get_input("SOA frames", 0)
-    mask_frame = get_input("Mask frames", 7)
-
-    repetition = get_input("Number of trials per condition", 10)
-    test_type = get_input("Test type\n1.Try experiment\n2.View congruent\n3.View incongruent", 1)
+    while option != 1:
+        if option == 2:
+            prime_ori_abs = get_input("Prime orientation", 45)
+            # mask_ori_abs = get_input("Mask orientation ", 45)
+        if option == 3:
+            prime_sf = get_input("Prime spatial frequency", 1.2)
+            mask_sf = get_input("Mask spatial frequency", 1.2)
+        if option == 4:
+            prime_contrast = get_input("Prime contrast", 0.05)
+            # mask_contrast = get_input("Mask contrast", 0.05)
+        if option == 5:
+            prime_phase = get_input("Prime phase", 0)
+            # mask_phase = get_input("Mask phase", 0)
+        if option == 6:
+            prime_frame= get_input("prime frames", 1)
+            SOA_frame = get_input("SOA frames", 0)
+            # mask_frame = get_input("Mask frames", 7)
+        if option == 7:
+            prime_type = get_input("prime type\n1.Without edge\n2.With edge", 1)
+        if option == 8:
+            test_type = get_input("Test type\n1.Try experiment\n2.View congruent\n3.View incongruent", 1)
+            break
+        option = get_input("Change other settings?\n1.No change\n2.Change orientaion\n3.Change spatial frequency\n4.Change contrast\n5.Change phase\n6.Chnage frames\n7.Change prime type\n8.Change test type\n", 1)
 
     # === Housekeeping ===
     refreshRate = 165
@@ -58,8 +84,10 @@ while True:
 
     mask_outer = visual.GratingStim(win=win, tex="sin", size = mask_size, sf=mask_sf,
                                     contrast=mask_contrast, mask="circle")
-
-    mask_inner = visual.Circle(win=win, radius=prime_size/2 , fillColor=bg_color, lineColor=bg_color)
+    if prime_type ==1 :
+        mask_inner = visual.Circle(win=win, radius=prime_size/2 , fillColor=bg_color, lineColor = bg_color)
+    else:
+        mask_inner = visual.Circle(win=win, radius=prime_size/2 , fillColor=bg_color, lineColor = 'black')
     blank = visual.TextStim(win=win, text="", color=text_color, bold=True)
     feedback = visual.TextStim(win=win, text="", color=text_color)
 
@@ -105,6 +133,7 @@ while True:
 
             prime.ori = prime_ori
             mask_outer.ori = mask_ori
+
             mask = visual.BufferImageStim(win=win, stim=[mask_outer, mask_inner])
             mask_prime = visual.BufferImageStim(win=win, stim=[mask_outer, mask_inner, prime])
 
@@ -158,7 +187,7 @@ while True:
 
     # === Restart or Exit ===
     win.close()
-    again = input("Restart with new settings? (y/n): ").strip().lower()
+    again = input("Restart the experiment? (y/n): ").strip().lower()
     if again != "y":
         break
 

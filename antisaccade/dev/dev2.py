@@ -32,9 +32,10 @@ gParDict={"let":['X','M'],
       "pos":[(-200,0),(200,0)]}
 gPar = SimpleNamespace(**gParDict)
 
-lParDict={"cond":0,
+lParDict={"isCongruent":0,
           "target":0,
-          "dur":100}
+          "posTarg":0,          
+          "dur":20}
 lPar = SimpleNamespace(**lParDict)
 
 rng = random.default_rng()
@@ -54,28 +55,37 @@ def getResp():
 
 def runTrial(lPar):
     frames=[]
-    frameDurations=[100,200,lPar.dur,60,20,20]
+    frameDurations=[60,1,lPar.dur,5,5,5]
     
     lPar.target = int(rng.integers(0,2,1))
+    lPar.posTarg = int(rng.integers(0,2,1))  #0=left, 1=right
+    if lPar.isCongruent==1:
+        posCue=lPar.posTarg
+    else:
+        posCue=1-lPar.posTarg
+
 
     #frame 0 START
     fixX=visual.TextStim(win,"+", height = 30)
     fixL=visual.Rect(win,pos=gPar.pos[0],fillColor=(-1,-1,-1),lineColor=(0,0,0),width=50,height=60)
     fixR=visual.Rect(win,pos=gPar.pos[1],fillColor=(-1,-1,-1),lineColor=(0,0,0),width=50,height=60)
     cXLR=visual.BufferImageStim(win,stim=(fixX,fixL,fixR))
+    box=[fixL,fixR]
     frames.append(cXLR)
     #frame 1 CUE
-    cue=visual.Rect(win,pos=gPar.pos[1],fillColor=(1,1,1),lineColor=(0,0,0),width=50,height=60)
-    frames.append(visual.BufferImageStim(win,stim=[fixL,fixR,fixX,cue]))
+    box[posCue].fillColor=[1,1,1]
+    #cue=visual.Rect(win,pos=gPar.pos[posCue],fillColor=(1,1,1),lineColor=(0,0,0),width=50,height=60)
+    frames.append(visual.BufferImageStim(win,stim=box+[fixX]))
+    box[posCue].fillColor=[-1,-1,-1]
     #frame 2 SAME AS START BUT 2-UP/1-DOWN
     frames.append(cXLR)
     #frame 3 TARGET
-    targ=visual.TextStim(win, gPar.let[lPar.target],pos=gPar.pos[0])
+    targ=visual.TextStim(win, gPar.let[lPar.target],pos=gPar.pos[lPar.posTarg])
     frames.append(visual.BufferImageStim(win,stim=(fixX,fixL,fixR,targ)))
     #frames 4/5 MASKS
-    mask1=visual.TextStim(win, gPar.mask[0],pos=gPar.pos[0])
+    mask1=visual.TextStim(win, gPar.mask[0],pos=gPar.pos[lPar.posTarg])
     frames.append(visual.BufferImageStim(win,stim=(fixX,fixL,fixR,mask1)))
-    mask2=visual.TextStim(win, gPar.mask[1],pos=gPar.pos[0])
+    mask2=visual.TextStim(win, gPar.mask[1],pos=gPar.pos[lPar.posTarg])
     frames.append(visual.BufferImageStim(win,stim=(fixX,fixL,fixR,mask2)))
     stamps=el.runFrames(win,frames,frameDurations,trialClock)
     ans=getResp()
@@ -83,24 +93,35 @@ def runTrial(lPar):
 
 
 def runBlock(blk):
-    lPar.cond=0
-    #numCor=0
+    if (blk==0) | (blk==2) | (blk==4):
+        lPar.isCongruent=1
+    else:
+        lPar.isCongruent=0
 
-    for trl in range(1):
+    divider = [visual.BufferImageStim(win,stim=(visual.TextStim("Block"),visual.TextStim(str(blk)),visual.TextStim(". Press key to start.")))]
+    message=visual.TextStim(win,divider)
+    message.draw()
+    win.flip()
+    event.waitKeys()
+
+    lPar.dur=50
+    numCor=0
+
+    for trl in range(3):
 
         [resp,rt]=runTrial(lPar)
-        #print(pid,sid,blk,trl,lPar.cond,lPar.target,lPar.dur,resp,rt,sep=", ", file=fptr)
+        print(pid,sid,blk,trl,lPar.isCongruent,lPar.target,lPar.dur,resp,rt,sep=", ", file=fptr)
 
-        #if (resp==lPar.target)&(numCor==0):
-            #numCor+=1
-        #elif (resp==lPar.target)&(numCor==1):
-            #lPar.dur = lPar.dur-3
-            #if lPar.dur<0:
-                #lPar.dur=0
-            #numCor=0
-        #else:
-            #lPar.dur = lPar.dur+3
-            #numCor=0
+        if (resp==lPar.target)&(numCor==0):
+            numCor+=1
+        elif (resp==lPar.target)&(numCor==1):
+            lPar.dur = lPar.dur-3
+            if lPar.dur<0:
+                lPar.dur=0
+            numCor=0
+        else:
+            lPar.dur = lPar.dur+3
+            numCor=0
 
 
 
@@ -109,12 +130,12 @@ message.draw()
 win.flip()
 event.waitKeys()
 
+blocks=[0,1,2,3,4,5]
+for i in range(int(len(blocks))): 
+    blk=blocks[i]
+    runBlock(blk)
 
-#runBlock(1)
-runTrial(lPar)
 win.close()
 fptr.close
-
-print(gPar)
 core.quit()
 
