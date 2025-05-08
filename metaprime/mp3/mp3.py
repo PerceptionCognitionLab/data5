@@ -268,7 +268,7 @@ mask_left.pos = pos_bottom
 blur_region.pos = pos_bottom
 mask_left.draw()
 blur_region.draw()
-mask_text1.draw()
+mask_text1.draw()    option = get_input("Change settings?\n1.No change\n2.Change orientaion\n3.Change spatial frequency\n4.Change contrast\n5.Change phase\n6.Chnage frames\n7.Change pr
 win.flip()
 event.waitKeys(keyList=['space'])
 

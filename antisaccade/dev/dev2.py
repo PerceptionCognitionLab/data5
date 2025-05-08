@@ -93,21 +93,16 @@ def runTrial(lPar):
 
 
 def runBlock(blk):
+    blockStart(blk)
     if (blk==0) | (blk==2) | (blk==4):
         lPar.isCongruent=1
     else:
         lPar.isCongruent=0
 
-    divider = [visual.BufferImageStim(win,stim=(visual.TextStim("Block"),visual.TextStim(str(blk)),visual.TextStim(". Press key to start.")))]
-    message=visual.TextStim(win,divider)
-    message.draw()
-    win.flip()
-    event.waitKeys()
-
     lPar.dur=50
     numCor=0
 
-    for trl in range(3):
+    for trl in range(10):
 
         [resp,rt]=runTrial(lPar)
         print(pid,sid,blk,trl,lPar.isCongruent,lPar.target,lPar.dur,resp,rt,sep=", ", file=fptr)
@@ -123,6 +118,13 @@ def runBlock(blk):
             lPar.dur = lPar.dur+3
             numCor=0
 
+
+def blockStart(blk):
+    messageText=f"Block {blk+1} \n\nPress key to start"
+    message=visual.TextStim(win,messageText)
+    message.draw()
+    win.flip()
+    event.waitKeys()
 
 
 message=visual.TextStim(win,"Press a key to start")
