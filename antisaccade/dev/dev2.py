@@ -38,7 +38,16 @@ lParDict={"isCongruent":0,
           "dur":20}
 lPar = SimpleNamespace(**lParDict)
 
+fixX=visual.TextStim(win,"+", height = 30)
+fixL=visual.Rect(win,pos=gPar.pos[0],fillColor=(-1,-1,-1),lineColor=(0,0,0),width=50,height=60)
+fixR=visual.Rect(win,pos=gPar.pos[1],fillColor=(-1,-1,-1),lineColor=(0,0,0),width=50,height=60)
+cXLR=visual.BufferImageStim(win,stim=(fixX,fixL,fixR))
+box=[fixL,fixR]
+
+
 rng = random.default_rng()
+
+
 
 def getResp():
     keys=event.getKeys(keyList=gPar.keyList,timeStamped=trialClock)
@@ -53,17 +62,20 @@ def getResp():
     resp = int(resp==gPar.keyList[1])
     return([resp,round(rt,3)])
 
-def runTrial(lPar):
-    frames=[]
-    frameDurations=[60,1,lPar.dur,5,5,5]
-    
+
+def condition():
     lPar.target = int(rng.integers(0,2,1))
     lPar.posTarg = int(rng.integers(0,2,1))  #0=left, 1=right
     if lPar.isCongruent==1:
         posCue=lPar.posTarg
     else:
         posCue=1-lPar.posTarg
+    return(posCue)
 
+
+def runTrial(lPar,posCue,cXLR):
+    frames=[]
+    frameDurations=[60,1,lPar.dur,5,5,5]
 
     #frame 0 START
     fixX=visual.TextStim(win,"+", height = 30)
@@ -74,7 +86,6 @@ def runTrial(lPar):
     frames.append(cXLR)
     #frame 1 CUE
     box[posCue].fillColor=[1,1,1]
-    #cue=visual.Rect(win,pos=gPar.pos[posCue],fillColor=(1,1,1),lineColor=(0,0,0),width=50,height=60)
     frames.append(visual.BufferImageStim(win,stim=box+[fixX]))
     box[posCue].fillColor=[-1,-1,-1]
     #frame 2 SAME AS START BUT 2-UP/1-DOWN
@@ -94,6 +105,7 @@ def runTrial(lPar):
 
 def runBlock(blk):
     blockStart(blk)
+    condition()
     if (blk==0) | (blk==2) | (blk==4):
         lPar.isCongruent=1
     else:
@@ -102,7 +114,7 @@ def runBlock(blk):
     lPar.dur=50
     numCor=0
 
-    for trl in range(10):
+    for trl in range(4):
 
         [resp,rt]=runTrial(lPar)
         print(pid,sid,blk,trl,lPar.isCongruent,lPar.target,lPar.dur,resp,rt,sep=", ", file=fptr)
@@ -126,17 +138,41 @@ def blockStart(blk):
     win.flip()
     event.waitKeys()
 
+def intro():
+    messageIntro=visual.TextStim(win,"Welcome to the experiment. \n\nWe will start with some training blocks.\n\nPress any key to begin training")
+    messageIntro.draw()
+    win.flip()
+    event.waitKeys()
 
-message=visual.TextStim(win,"Press a key to start")
-message.draw()
-win.flip()
-event.waitKeys()
+def t1(posCue):
+    
+    
+    win.flip()
+    event.waitKeys()
 
+    t1=box[posCue].fillColor=[1,1,1]
+    t1.draw
+    
+    box[posCue].fillColor=[-1,-1,-1]
+
+
+
+
+def startExp():
+    message=visual.TextStim(win,"Now we will start the experiment blocks. \n\nPress a key to continue.")
+    message.draw()
+    win.flip()
+    event.waitKeys()
+
+
+
+intro()
+t1(condition())
+startExp()
 blocks=[0,1,2,3,4,5]
 for i in range(int(len(blocks))): 
     blk=blocks[i]
     runBlock(blk)
-
 win.close()
 fptr.close
 core.quit()
