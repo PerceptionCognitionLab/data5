@@ -5,107 +5,149 @@ from psychopy import visual, core, event
 import pandas as pd
 
 # === Setup ===
-win = visual.Window(size=(500,500), color=(0, 0, 0), units='pix', fullscr=False, monitor='MyMonitor')
+win = visual.Window(size=(1920, 1080), color=(0, 0, 0), units='norm', fullscr=True)
+stim = visual.Rect(win, width=2, height=2)
 
-# Define the flicker gray pairs (low_gray, high_gray)
-flash_pairs = [
-    (0, 255),
-    (32, 255),
-    (64, 255),
-    (96, 255),
-    (128, 255),
-    (0, 128),
-    (32, 128),
-    (64, 128),
-    (96, 128)
-]
+# Data storage
+data = []
 
-matched_results = []
+# Define color channels
+colors = ['red', 'green', 'blue']
 
-# === Main loop ===
-for low_gray, high_gray in flash_pairs:
-    bg_gray = 128  # Initial inner background gray
-    expected_gray = (low_gray + high_gray) / 2  # Theoretical mean
-    adjusting = True
-
-    while adjusting:
-        # Fill the outer background as black
-        win.color = [0, 0, 0]
-
-        # Define the grid area
-        grid_width = 500   # grid size
-        grid_height = 500
-        n_lines_x = 500     # number of vertical lines
-
-        line_width = grid_width / n_lines_x
-        line_height = grid_height
-
-        start_x = -grid_width / 2 + line_width / 2  # center the grid
-
-        # Draw vertical lines
-        for i in range(n_lines_x):
-            x_pos = start_x + i * line_width
-            this_line_gray = low_gray if i % 2 == 0 else high_gray
-            this_line_color = (this_line_gray / 255) * 2 - 1
-
-            line = visual.Rect(
-                win,
-                width=line_width * 0.8,
-                height=line_height,
-                pos=(x_pos, 0),
-                fillColor=[this_line_color]*3,
-                lineColor=[this_line_color]*3
-            )
-            line.draw()
-
-        # Draw the adjustable center patch
-        inner_color = (bg_gray / 255) * 2 - 1
-        center_patch = visual.Rect(
-            win,
-            width=grid_width * 0.5,
-            height=grid_height * 0.5,
-            pos=(0, 0),
-            fillColor=[inner_color]*3,
-            lineColor=[inner_color]*3
-        )
-        center_patch.draw()
-
-        # Show current info: expected and current
-        info_text = visual.TextStim(
-            win,
-            text=f"Expected luminance: {expected_gray:.1f}\nCurrent luminance: {bg_gray}",
-            pos=(0, -200),
-            color='black',
-            height=30,
-            alignText='center'
-        )
-        info_text.draw()
-
-        # Flip window
+# Loop through each color channel
+for color in colors:
+    for value in range(0, 256, 16):
+        rgb = [0, 0, 0]
+        if color == 'red':
+            rgb[0] = value / 255
+        elif color == 'green':
+            rgb[1] = value / 255
+        elif color == 'blue':
+            rgb[2] = value / 255
+        
+        stim.fillColor = rgb
+        stim.draw()
         win.flip()
+        
+        # Input prompt
+        typed_text = ''
+        input_complete = False
+        text_stim = visual.TextStim(win, text='', pos=(0, -0.8), color=(1, 1, 1), height=0.07)
+        
+        while not input_complete:
+            stim.draw()
+            text_stim.text = f"Enter illuminance for {color} {value}: {typed_text}"
+            text_stim.draw()
+            win.flip()
+            
+            keys = event.waitKeys()
+            for key in keys:
+                if key == 'escape':
+                    win.close()
+                    core.quit()
+                elif key == 'return':
+                    input_complete = True
+                elif key == 'backspace':
+                    typed_text = typed_text[:-1]
+                elif key in ['0','1','2','3','4','5','6','7','8','9']:
+                    typed_text += key
+                elif key == 'minus' and len(typed_text) == 0:
+                    typed_text += '-'
+                elif key == 'period' and '.' not in typed_text:
+                    typed_text += '.'
+        
+        # Store result
+        try:
+            illuminance = float(typed_text)
+        except ValueError:
+            illuminance = None  # handle if input is invalid
+        
+        data.append({
+            'color': color,
+            'intensity': value,
+            'illuminance': illuminance
+        })
 
-        # Check for keypress
-        keys = event.getKeys(keyList=['left', 'right', 'space', 'escape'])
+# Save to CSV
+df = pd.DataFrame(data)
+df.to_csv('stimulus_illuminance_all_colors.csv', index=False)
 
-        for key in keys:
-            if key == 'left':
-                bg_gray = max(0, bg_gray - 2)  # Decrease brightness
-            elif key == 'right':
-                bg_gray = min(255, bg_gray + 2)  # Increase brightness
-            elif key == 'space':
-                matched_results.append((low_gray, high_gray, bg_gray))
-                adjusting = False
-            elif key == 'escape':
-                win.close()
-                core.quit()
-
-# Close window
 win.close()
+core.quit()
 
-# === Save results to CSV ===
-df = pd.DataFrame(matched_results, columns=['low_gray', 'high_gray', 'matched_inner_gray'])
-df['expected_gray'] = (df['low_gray'] + df['high_gray']) / 2
-df.to_csv('gamma_subjective_inner_patch1.csv', index=False)
 
-print("Measurement complete! Results saved to 'gamma_subjective_inner_patch.csv'.")
-print(df)
+
+import pandas as pd
+import numpy as np
+from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
+
+# Load the CSV
+df = pd.read_csv('stimulus_illuminance_all_colors.csv')
+
+# Normalize intensity (0 to 1)
+df['intensity_norm'] = df['intensity'] / 255.0
+
+# Define the gamma function
+def gamma_func(I, a, gamma):
+    return a * (I ** gamma)
+
+# Store results
+results = {}
+
+# Fit for each color channel
+for color in ['red', 'green', 'blue']:
+    color_data = df[df['color'] == color]
+    I = color_data['intensity_norm'].values
+    L = color_data['illuminance'].values
+
+    # Remove any NaNs
+    valid = ~np.isnan(I) & ~np.isnan(L)
+    I = I[valid]
+    L = L[valid]
+
+    # Fit curve
+    popt, pcov = curve_fit(gamma_func, I, L, bounds=(0, [np.inf, 5]))
+    a_fit, gamma_fit = popt
+    results[color] = {'a': a_fit, 'gamma': gamma_fit}
+
+    # Plot
+    plt.figure()
+    plt.scatter(I, L, label='Measured')
+    I_fit = np.linspace(0, 1, 100)
+    L_fit = gamma_func(I_fit, *popt)
+    plt.plot(I_fit, L_fit, color='red', label=f'Fit γ={gamma_fit:.2f}')
+    plt.title(f'{color.capitalize()} Channel Gamma Fit')
+    plt.xlabel('Normalized Intensity')
+    plt.ylabel('Illuminance')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+# Print gamma values
+for color, params in results.items():
+    print(f"{color.capitalize()} - Gamma: {params['gamma']:.3f}, a: {params['a']:.3f}")
+
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the data
+df = pd.read_csv('stimulus_illuminance_all_colors.csv')
+
+# Plot settings
+channels = ['red', 'green', 'blue']
+colors = {'red': 'red', 'green': 'green', 'blue': 'blue'}
+
+# Create one plot per channel
+for channel in channels:
+    channel_data = df[df['color'] == channel]
+    plt.figure()
+    plt.scatter(channel_data['intensity'], channel_data['illuminance'], color=colors[channel])
+    plt.title(f'{channel.capitalize()} Channel: Intensity vs Illuminance')
+    plt.xlabel('Intensity (0–255)')
+    plt.ylabel('Illuminance (lux)')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()

@@ -30,7 +30,7 @@ while True:
     test_type = 1
     prime_type = 1 # 1 wihout edge, 2 with edge
 
-    option = get_input("Change settings?\n1.No change\n2.Change orientaion\n3.Change spatial frequency\n4.Change contrast\n5.Change phase\n6.Chnage frames\n7.Change prime type\n8.Change test type", 1)
+    option = get_input("Change settings?\n1.No change\n2.Change orientaion\n3.Change spatial frequency\n4.Change contrast\n5.Change phase\n6.Chnage SOA frames\n7.Change prime type\n8.Change test type", 1)
     # === Parameter Configuration ===
     while option != 1:
         if option == 2:
@@ -46,7 +46,6 @@ while True:
             prime_phase = get_input("Prime phase", 0)
             # mask_phase = get_input("Mask phase", 0)
         if option == 6:
-            prime_frame= get_input("prime frames", 1)
             SOA_frame = get_input("SOA frames", 0)
             # mask_frame = get_input("Mask frames", 7)
         if option == 7:
@@ -54,7 +53,7 @@ while True:
         if option == 8:
             test_type = get_input("Test type\n1.Try experiment\n2.View congruent\n3.View incongruent", 1)
             break
-        option = get_input("Change other settings?\n1.No change\n2.Change orientaion\n3.Change spatial frequency\n4.Change contrast\n5.Change phase\n6.Chnage frames\n7.Change prime type\n8.Change test type\n", 1)
+        option = get_input("Change other settings?\n1.No change\n2.Change orientaion\n3.Change spatial frequency\n4.Change contrast\n5.Change phase\n6.Chnage SOA frames\n7.Change prime type\n8.Change test type\n", 1)
 
     # === Housekeeping ===
     refreshRate = 165
@@ -138,14 +137,22 @@ while True:
             mask_prime = visual.BufferImageStim(win=win, stim=[mask_outer, mask_inner, prime])
 
             # === Trial Sequence ===
-            if SOA_frame != 0:
-                frames = [blank, prime, mask_prime, mask]
-                frameDurations = [fixation_frame, SOA_frame, prime_frame-SOA_frame, mask_frame-(prime_frame-SOA_frame)]
-            else:
+            if SOA_frame == 0:
                 frames = [blank, mask_prime, mask]
-                frameDurations = [fixation_frame, prime_frame, mask_frame-prime_frame]  
+                frameDurations = [fixation_frame, prime_frame, mask_frame-prime_frame] 
+            elif SOA_frame == prime_frame: # prime_frame is set to 1
+                frames = [blank, prime, mask]
+                frameDurations = [fixation_frame, prime_frame, mask_frame] 
+            elif SOA_frame > prime_frame:
+                frames = [blank, prime, blank, mask]
+                frameDurations = [fixation_frame, prime_frame, SOA_frame-prime_frame, mask_frame]
 
         stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
+        critTime = exlib.actualFrameDurations(frameDurations, stamps)[1]
+        critPass = (np.absolute((prime_frame/refreshRate) - critTime) < .001)
+        if not critPass:
+            print('Critical pass fail, while critical time is ' + str(np.round(critTime, 4)) +
+                  ', actual time is ' + str(np.round(prime_frame/refreshRate, 4)))
         if test_type == 1:
             keys = event.waitKeys(keyList=["x", "m", "escape"])
             if "escape" in keys:
