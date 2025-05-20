@@ -39,7 +39,7 @@ def runTrial(dur, stimCode):
     frames = [blank, stim[stimCode], both, blank]
     frameTimes = [100,dur,100,1]
     elib.runFrames (win, frames, frameTimes, trialClock)
-    keys = event.waitKeys(maxWait=5, timeStamped=trialClock, 
+    keys = event.waitKeys(timeStamped=trialClock, 
                           keyList=['x', 'm', '9'])
     resp=1
     if keys[0]=='x':
@@ -52,13 +52,13 @@ def runSim(trialNum):
     for i in range(trialNum):
         trialNum = i
         stim = random.choice([0,1])
-        dur = random.choice([1, 2, 5, 10, 20])
+        dur = random.choice([1])
         resp=runTrial(dur,stim)
         info=[trialNum, stim, dur, resp]
         print(*info, sep=' ', file=fptr)
 
 
-runSim(3)
+runSim(10)
 
 
 
