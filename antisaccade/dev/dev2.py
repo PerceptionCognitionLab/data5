@@ -155,25 +155,25 @@ def p2(): #slow
 
     for trial in range(8):
         Pframes=[]
-        PframeDurations=[60,3,130,15,15,15]
+        PframeDurations=[60,3,100,10,10,10]
 
         lPar.target = int(rng.integers(0,2,1))
         lPar.posTarg = int(rng.integers(0,2,1))  #0=left, 1=right
-        if trial<=4:
+        if trial<=3:
             posCue=lPar.posTarg
         else:
             posCue=1-lPar.posTarg
 
-        if trial==1:
+        if trial==0:
             cong=visual.TextStim(win,"Same side",height=20)
             cong.draw()
             win.flip()
-            core.wait(2)
-        elif trial==5:
+            core.wait(1)
+        elif trial==4:
             incong=visual.TextStim(win,"Opposite side",height=20)
             incong.draw()
             win.flip()
-            core.wait(2)
+            core.wait(1)
     
         fixX,fixL,fixR,cXLR,box,targ,mask1,mask2=createStim()
         Pframes.append(cXLR)
@@ -188,32 +188,32 @@ def p2(): #slow
         ans=getResp()
 
 def p3(): #real thing
-    messagep3=visual.TextStim(win,"Practice 3: \n\nLet's run the experiment AT SPEED.",height=30)
+    messagep3=visual.TextStim(win,"Practice 3: \n\nLet's run the experiment \nAT SPEED.",height=30)
     messagep3.draw()
     win.flip()
     event.waitKeys()
 
-    for trial in range(12):
+    for trial in range(20):
         Pframes=[]
         PframeDurations=[60,1,lPar.dur,5,5,5]
 
         lPar.target = int(rng.integers(0,2,1))
         lPar.posTarg = int(rng.integers(0,2,1))  #0=left, 1=right
-        if trial<=6:
+        if trial<=9:
             posCue=lPar.posTarg
         else:
             posCue=1-lPar.posTarg
     
-        if trial==1:
+        if trial==0:
             cong=visual.TextStim(win,"Same side",height=20)
             cong.draw()
             win.flip()
-            core.wait(2)
-        elif trial==7:
+            core.wait(1)
+        elif trial==10:
             incong=visual.TextStim(win,"Opposite side",height=20)
             incong.draw()
             win.flip()
-            core.wait(2)
+            core.wait(1)
 
         fixX,fixL,fixR,cXLR,box,targ,mask1,mask2=createStim()
         Pframes.append(cXLR)
@@ -228,9 +228,11 @@ def p3(): #real thing
         ans=getResp()
 
 def blockStart(blk):
-    messageText=f"Block {blk+1} \n\nPress key to start"
-    messageText.height=30
-    message=visual.TextStim(win,messageText)
+    if (blk==0) | (blk==2) | (blk==4):
+        cond = "Same side"
+    else:
+        cond = "Opposite side"
+    message=visual.TextStim(win,f"Block {blk+1}  \n{cond} \n\nPress key to start",height=30)
     message.draw()
     win.flip()
     event.waitKeys()
@@ -242,20 +244,20 @@ def startExp():
     event.waitKeys()
 
 def intro():
-    messageIntro=visual.TextStim(win,"Welcome to the experiment! \n\nWe will start with some training blocks.\n\nPress any key to begin training.",height=30)
+    messageIntro=visual.TextStim(win,"Welcome to the experiment! \n\nWe will start with some practice blocks.\n\nPress any key to begin practicing.",height=30)
     messageIntro.draw()
     win.flip()
     event.waitKeys()
 
 intro()
 p1()
-#p2()
-#p3()
-#startExp()
-#blocks=[0,1,2,3,4,5]
-#for i in range(int(len(blocks))): 
-    #blk=blocks[i]
-    #runBlock(blk)
+p2()
+p3()
+startExp()
+blocks=[0,1,2,3,4,5]
+for i in range(int(len(blocks))): 
+    blk=blocks[i]
+    runBlock(blk)
 win.close()
 fptr.close
 core.quit()

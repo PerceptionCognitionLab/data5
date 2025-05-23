@@ -36,8 +36,8 @@ def runTrial(dur, stimCode):
     both=visual.BufferImageStim(win,stim=stim)
     blank = visual.TextStim(win, '', pos = (0.0,0.0))
 
-    frames = [blank, stim[stimCode], both, blank]
-    frameTimes = [100,dur,100,1]
+    frames = [blank, stim[stimCode], blank,stim[(1-stimCode)], blank]
+    frameTimes = [100,1,dur,1,1]
     elib.runFrames (win, frames, frameTimes, trialClock)
     keys = event.waitKeys(timeStamped=trialClock, 
                           keyList=['x', 'm', '9'])
@@ -52,13 +52,13 @@ def runSim(trialNum):
     for i in range(trialNum):
         trialNum = i
         stim = random.choice([0,1])
-        dur = random.choice([37])
+        dur = random.choice([2])
         resp=runTrial(dur,stim)
         info=[trialNum, stim, dur, resp]
         print(*info, sep=' ', file=fptr)
 
 
-runSim(10)
+runSim(5)
 
 
 
