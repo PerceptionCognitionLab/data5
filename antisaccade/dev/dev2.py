@@ -26,10 +26,10 @@ win=visual.Window(units= "pix",
                      color=[-1,-1,-1],
                      fullscr = True)
 
-gParDict={"let":['X','M'],
+gParDict={"let":['A','S','D','F','G','H','J','K','L'],
       "mask":['@','#'],
       "abortKey":'9',
-      "keyList":['x','m','9'],
+      "keyList":['a','s','d','f','g','h','j','k','l','9'],
       "pos":[(-200,0),(200,0)]}
 gPar = SimpleNamespace(**gParDict)
 
@@ -67,7 +67,7 @@ def runTrial(lPar):
     frames=[]
     frameDurations=[60,1,lPar.dur,5,5,5]
 
-    lPar.target = int(rng.integers(0,2,1))
+    lPar.target = int(rng.integers(0,9,1))
     lPar.posTarg = int(rng.integers(0,2,1))  #0=left, 1=right
     if lPar.isCongruent==1:
         posCue=lPar.posTarg
@@ -249,10 +249,10 @@ def intro():
     win.flip()
     event.waitKeys()
 
-intro()
-p1()
-p2()
-p3()
+#intro()
+#p1()
+#p2()
+#p3()
 startExp()
 blocks=[0,1,2,3,4,5]
 for i in range(int(len(blocks))): 
