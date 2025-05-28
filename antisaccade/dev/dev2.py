@@ -60,7 +60,7 @@ def getResp():
         fptr.close()
         win.close()
         core.quit()   
-    resp = int(resp==gPar.keyList[1])
+    resp = gPar.keyList.index(resp)
     return([resp,round(rt,3)])
 
 def runTrial(lPar):
@@ -97,7 +97,7 @@ def runBlock(blk):
     lPar.dur=50
     numCor=0
 
-    for trl in range(4):
+    for trl in range(5):
         [resp,rt]=runTrial(lPar)
         print(pid,sid,blk,trl,lPar.isCongruent,lPar.target,lPar.dur,resp,rt,sep=", ", file=fptr)
 
@@ -157,7 +157,7 @@ def p2(): #slow
         Pframes=[]
         PframeDurations=[60,3,100,10,10,10]
 
-        lPar.target = int(rng.integers(0,2,1))
+        lPar.target = int(rng.integers(0,9,1))
         lPar.posTarg = int(rng.integers(0,2,1))  #0=left, 1=right
         if trial<=3:
             posCue=lPar.posTarg
@@ -197,7 +197,7 @@ def p3(): #real thing
         Pframes=[]
         PframeDurations=[60,1,lPar.dur,5,5,5]
 
-        lPar.target = int(rng.integers(0,2,1))
+        lPar.target = int(rng.integers(0,9,1))
         lPar.posTarg = int(rng.integers(0,2,1))  #0=left, 1=right
         if trial<=9:
             posCue=lPar.posTarg
@@ -238,7 +238,7 @@ def blockStart(blk):
     event.waitKeys()
 
 def startExp():
-    message=visual.TextStim(win,"Now we will start the experiment blocks. \n\nPress a key to continue.",height=30)
+    message=visual.TextStim(win,"Feeling ready? \n\nNow we will start the experiment blocks. \n\nPress a key to continue.",height=30)
     message.draw()
     win.flip()
     event.waitKeys()
@@ -249,10 +249,10 @@ def intro():
     win.flip()
     event.waitKeys()
 
-#intro()
+intro()
 #p1()
 #p2()
-#p3()
+p3()
 startExp()
 blocks=[0,1,2,3,4,5]
 for i in range(int(len(blocks))): 
