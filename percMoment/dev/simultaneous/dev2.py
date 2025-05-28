@@ -28,37 +28,40 @@ seed = random.randrange(1e6)
 random.seed(seed)
 
 
-
-def runTrial(dur, stimCode):
+def runTrial(soa, stimCode):
     stim=[]
     stim.append(visual.TextStim(win, '+', pos = (-48,0.0)))
     stim.append(visual.TextStim(win, '+', pos = (48,0.0)))
     both=visual.BufferImageStim(win,stim=stim)
+    stim.append(both)
     blank = visual.TextStim(win, '', pos = (0.0,0.0))
-
-    frames = [blank, stim[stimCode], both, blank]
-    frameTimes = [100,dur,100,1]
+    if stimCode==2:
+        frames = [blank, both, blank]
+        frameTimes = [100,1,1]
+    else:
+        frames=[blank,stim[stimCode],blank,stim[1-stimCode],blank]
+        frameTimes= [100,1,soa,1,1]
     elib.runFrames (win, frames, frameTimes, trialClock)
     keys = event.waitKeys(timeStamped=trialClock, 
                           keyList=['x', 'm', '9'])
     resp=1
-    if keys[0]=='x':
+    if keys[0][0]=='x':
         resp=0
+    print(f"soa: {soa}, stim code: {stimCode}, resp: {resp}, ")
     return(resp)
 
 
 
-def runSim(trialNum):
-    for i in range(trialNum):
-        trialNum = i
-        stim = random.choice([0,1])
-        dur = random.choice([37])
-        resp=runTrial(dur,stim)
-        info=[trialNum, stim, dur, resp]
+def runBlock(n):
+    for i in range(n):
+        stim = random.choices(range(3),weights=[.25,.25,.5])[0]
+        soa=random.choices([2,4,6],weights=[.33,.33,.33])[0]
+        resp=runTrial(soa,stim)
+        info=[i, stim, soa, resp]
         print(*info, sep=' ', file=fptr)
 
 
-runSim(10)
+runBlock(60)
 
 
 
