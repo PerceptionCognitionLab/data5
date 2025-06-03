@@ -289,15 +289,15 @@ def intro():
     event.waitKeys()
 
 #intro()
-p1()
+#p1()
 #p2()
 #p3()
-#startExp()
-#blocks=[0,1,2,3,4,5]
-#for i in range(int(len(blocks))): 
-    #blk=blocks[i]
-    #runBlock(blk)
+startExp()
+blocks=[0,1,2,3,4,5]
+for i in range(int(len(blocks))): 
+    blk=blocks[i]
+    runBlock(blk)
 win.close()
-#fptr.close
+fptr.close
 core.quit()
 
