@@ -19,6 +19,9 @@ rng = random.default_rng()
 scale=400
 
 trialClock=core.Clock()
+correctSound1=sound.Sound(value=500,secs=.1)
+correctSound2=sound.Sound(value=1000,secs=.2)
+errorSound=sound.Sound(value=300,secs=.5)
 
 win=visual.Window(units= "pix", 
                      allowGUI=False,
@@ -30,7 +33,7 @@ gParDict={"let":['A','S','D','F','G','H','J','K','L'],
       "mask":['@','#'],
       "abortKey":'9',
       "keyList":['a','s','d','f','g','h','j','k','l','9'],
-      "pos":[(-200,0),(200,0)]}
+      "pos":[(-400,0),(400,0)]}
 gPar = SimpleNamespace(**gParDict)
 
 lParDict={"isCongruent":0,
@@ -41,8 +44,8 @@ lPar = SimpleNamespace(**lParDict)
 
 def createStim():
     fixX=visual.TextStim(win,"+", height = 30)
-    fixL=visual.Rect(win,pos=gPar.pos[0],fillColor=(-1,-1,-1),lineColor=(0,0,0),width=50,height=60)
-    fixR=visual.Rect(win,pos=gPar.pos[1],fillColor=(-1,-1,-1),lineColor=(0,0,0),width=50,height=60)
+    fixL=visual.Rect(win,pos=gPar.pos[0],fillColor=(-1,-1,-1),lineColor=(0,0,0),lineWidth=2,width=50,height=60)
+    fixR=visual.Rect(win,pos=gPar.pos[1],fillColor=(-1,-1,-1),lineColor=(0,0,0),lineWidth=2,width=50,height=60)
     cXLR=visual.BufferImageStim(win,stim=(fixX,fixL,fixR))
     box=[fixL,fixR]
     targ=visual.TextStim(win, gPar.let[lPar.target],pos=gPar.pos[lPar.posTarg])
@@ -65,7 +68,7 @@ def getResp():
 
 def runTrial(lPar):
     frames=[]
-    frameDurations=[60,1,lPar.dur,5,5,5,1]
+    frameDurations=[100,1,lPar.dur,3,5,5]
 
     lPar.target = int(rng.integers(0,9,1))
     lPar.posTarg = int(rng.integers(0,2,1))  #0=left, 1=right
@@ -76,22 +79,27 @@ def runTrial(lPar):
     
     fixX,fixL,fixR,cXLR,box,targ,mask1,mask2=createStim()
     frames.append(cXLR)
-    box[posCue].fillColor=[1,1,1]
+    box[posCue].lineColor=[1,1,1]
+    box[posCue].lineWidth=10
     frames.append(visual.BufferImageStim(win,stim=box+[fixX]))
-    box[posCue].fillColor=[-1,-1,-1]
+    box[posCue].lineColor=[-1,-1,-1]
+    box[posCue].lineWidth=2
     frames.append(cXLR)
     frames.append(visual.BufferImageStim(win,stim=(fixX,fixL,fixR,targ)))
     frames.append(visual.BufferImageStim(win,stim=(fixX,fixL,fixR,mask1)))
     frames.append(visual.BufferImageStim(win,stim=(fixX,fixL,fixR,mask2)))
-    frames.append(visual.TextStim(
-        win = win,
-        text = "Enter the letter you saw",
-        pos = (0,0),
-        color = [0,1,0]
-    ),)
     stamps=el.runFrames(win,frames,frameDurations,trialClock)
-    ans=getResp()
-    return(ans)
+    [resp,rt]=getResp()
+    if (resp==lPar.target):
+        correctSound1.play()
+        correctSound2.play()
+    else:
+        errorSound.play()
+
+    return([resp,rt])
+
+congruentDur =[10]
+incongruentDur=[10]
 
 def runBlock(blk):
     blockStart(blk)
@@ -100,7 +108,11 @@ def runBlock(blk):
     else:
         lPar.isCongruent=0                  #incongruent
 
-    lPar.dur=50
+    if lPar.isCongruent==1:
+        lPar.dur=congruentDur[-1]
+    else:
+        lPar.dur=incongruentDur[-1]
+    
     numCor=0
 
     for trl in range(5):
@@ -110,13 +122,21 @@ def runBlock(blk):
         if (resp==lPar.target)&(numCor==0):
             numCor+=1
         elif (resp==lPar.target)&(numCor==1):
-            lPar.dur = lPar.dur-3
+            lPar.dur = lPar.dur-1
             if lPar.dur<0:
                 lPar.dur=0
             numCor=0
         else:
-            lPar.dur = lPar.dur+3
+            lPar.dur = lPar.dur+1
             numCor=0
+
+    if lPar.isCongruent==1:
+        congruentDur.append(lPar.dur)
+    else:
+        incongruentDur.append(lPar.dur)
+    
+    print(congruentDur)
+    print(incongruentDur)
 
 
 #############
@@ -133,7 +153,8 @@ def trainFR():
     # Init
     frame=[]
     frameTimes=[1]
-    txt1s1= visual.TextStim(win,"Practice 1:\nClick through the experiment.\n\nPress a key to continue",height=30)
+    txt1s1= visual.TextStim(win,"Practice 1:\nClick through the experiment." \
+                            "\n\nPress a key to continue",height=30)
     frame.append(txt1s1)
     
     el.runFrames(win,frame,frameTimes,trialClock)
@@ -143,8 +164,10 @@ def trainFR():
     # inst 2
     frame = []
     frameTimes=[1]
-    txt1s1= visual.TextStim(win,"This is the start screen. This will appear throughout the experiment",pos=(0,200),height=20)
-    txt1s2= visual.TextStim(win,"First, one of the boxes will flash white. \nThis is the cue. \n\nClick to see the cue", pos=(0,-200),height=20)
+    txt1s1= visual.TextStim(win,"This is the start screen. " \
+                            "This will appear throughout the experiment",pos=(0,200),height=20)
+    txt1s2= visual.TextStim(win,"First, one of the boxes will flash white. " \
+                            "\nThis is the cue. \n\nClick to see the cue", pos=(0,-200),height=20)
     frame.append(visual.BufferImageStim(win,stim=[txt1s1,txt1s2,fixL,fixR,fixX]))
     
     el.runFrames(win,frame,frameTimes,trialClock)
@@ -165,7 +188,9 @@ def trainFR():
     #inst 3
     frame = []
     frameTimes=[1]
-    txt1s3 = visual.TextStim(win, "Looks good! That was the cue. \n\nNext, a letter from the middle row on the keyboard will flash in one of the boxes. \nFor this practice, it will be in the same box as the cue.", pos=(0, 200), height=20)
+    txt1s3 = visual.TextStim(win, "Looks good! That was the cue. " \
+                            "\n\nNext, a letter from the middle row on the keyboard will flash in one of the boxes. " \
+                            "\nFor this practice, it will be in the same box as the cue.", pos=(0, 200), height=20)
     txt1s4 = visual.TextStim(win, "Press a key to continue", pos=(0, -200), height=20)
     frame.append(visual.BufferImageStim(win, stim=[txt1s3, txt1s4, fixL, fixR, fixX]))
     
@@ -201,27 +226,7 @@ def trainFR():
 
 
 
-        
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
 
 
 
@@ -236,24 +241,26 @@ def blockStart(blk):
     event.waitKeys()
 
 def startExp():
-    message=visual.TextStim(win,"Feeling ready? \n\nNow we will start the experiment blocks. \n\nPress a key to continue.",height=30)
+    message=visual.TextStim(win,"Feeling ready? \n\nNow we will start the experiment blocks. " \
+                            "\n\nPress a key to continue.",height=30)
     message.draw()
     win.flip()
     event.waitKeys()
 
 def intro():
-    messageIntro=visual.TextStim(win,"Welcome to the experiment! \n\nWe will start with some practice blocks.\n\nPress any key to begin practicing.",height=30)
+    messageIntro=visual.TextStim(win,"Welcome to the experiment! \n\n We will start with some practice blocks." \
+                                "\n\n Press any key to begin practicing.",height=30)
     messageIntro.draw()
     win.flip()
     event.waitKeys()
 
-#intro()
-trainFR()
+intro()
+#trainFR()
 startExp()
-#blocks=[0,1,2,3,4,5]
-#for i in range(int(len(blocks))): 
-    #blk=blocks[i]
-    #runBlock(blk)
+blocks=[0,1,2,3,4,5]
+for i in range(int(len(blocks))): 
+    blk=blocks[i]
+    runBlock(blk)
 win.close()
 fptr.close
 core.quit()
