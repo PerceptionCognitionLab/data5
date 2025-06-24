@@ -1,0 +1,6 @@
+trial,letter,response,correct,alpha
+1,G,G,True,0.08
+2,G,G,True,0.08
+3,S,S,True,0.075
+4,K,K,True,0.075
+5,F,F,True,0.06999999999999999
