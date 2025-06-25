@@ -1,9 +1,44 @@
-from PIL import Image, ImageDraw, ImageFont
+from psychopy import visual, event, core, prefs, sound 
+import sys
 import numpy as np
-import random
 import matplotlib.pyplot as plt
-from psychopy import visual, event, core
-import cv2 
+import random
+import pandas as pd
+from PIL import Image, ImageDraw, ImageFont
+sys.path.insert(0, '/home/exp/specl-exp/lib/data5/')
+import expLib51 as exlib
+import cv2
+
+prefs.hardware['audioLib']=['PTB']
+prefs.hardware['audioLatencyMode']=3
+
+# region
+refreshRate=165
+exlib.setRefreshRate(refreshRate)
+trialClock=core.Clock()
+expName="mp1"
+dbConf=exlib.data5
+seed = random.randrange(1e6)
+# [pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
+[pid,sid,fname] = [1,1,'Me.dat']
+fptr = open(fname,'w')
+# endregion
+
+correctSound1=sound.Sound(value=600,secs=0.1)
+correctSound2=sound.Sound(value=800,secs=0.1)
+errorSound=sound.Sound(value=500,secs=0.2)
+
+# Parameters
+oris = ['left', 'right']
+soa = 20
+soa_practice = [20, 24, 28]
+step_size = 1
+n_trials = 5
+n_practices = 2
+correct_counter = 0
+data = []
+FixationFrame = 80
+NosieFrame = 80
 
 def ShowImage(image):
     plt.imshow(image, cmap='gray', vmin=0, vmax=1)
@@ -65,17 +100,7 @@ def Norm(image):
 # Visual Setup
 win = visual.Window(size=(1920, 1080), color=-1, units="pix", fullscr=True)
 stim = visual.ImageStim(win, size=(512, 512), units="pix")
-
-# Parameters
-oris = ['left', 'right']
-soa = 0.1
-soa_practice = [0.1, 0.15, 0.2]
-step_size = 0.005
-n_trials = 50
-n_practices = 10
-noise_gap = 0.3
-correct_counter = 0
-data = []
+noise = visual.ImageStim(win, size=(512, 512), units="pix")
 
 # Welcome Screen
 text = visual.TextStim(win, text="Welcome to the experiment! Press SPACE to begin the instruction", color=1.0, height=24)
@@ -88,9 +113,9 @@ text = visual.TextStim(win, text="In this experiment, you will see a Pi-shape ta
                                         The below one has a longer left leg.\
                                         \n\n The Pi-shaped target will be briefly flashed and then immediately masked by some random lines, your task is to identify which leg is longer after the Pi-shape target is briefly presented at the center of the screen\
                                         \n\n If you think the left leg is longer, press 'x'. If you think the right leg is longer, press 'm'.\
-                                        \n\n Press SPACE to continue", color=1.0, height=24, pos = (0, 300))
+                                        \n\n Press SPACE to continue", color=1.0, height=24, pos = (0, 250))
 text.draw()
-image = visual.ImageStim(image = np.flipud(Norm(PiImage(ori = 'left'))), win = win, size=(512, 512), pos = (0, -200), units="pix")
+image = visual.ImageStim(image = np.flipud(Norm(PiImage(ori = 'left'))), win = win, size=(512, 512), pos = (0, -250), units="pix")
 image.draw()
 win.flip()
 event.waitKeys(keyList=['space'])
@@ -107,50 +132,55 @@ for trial in range(n_practices):
         print("Experiment aborted during practice.")
         break
 
-    # Fixation
+   # Fixation
     fixation = visual.TextStim(win, text="+", color=1.0, height=48)
-    fixation.draw()
-    win.flip()
-    core.wait(0.5)
 
     # Stimulus
     ori, practice_soa = random.choice(oris), random.choice(soa_practice)
     stim.image = np.flipud(Norm(PiImage(ori = ori)))
-    stim.draw()
-    win.flip()
-    core.wait(soa)
-    stim.image = np.flipud(Norm(PiMask()))
-    stim.draw()
-    win.flip()
-    core.wait(noise_gap)
-    win.flip()
 
-    wait = visual.TextStim(win, text="Choose the orientation", color=1.0, height=48)
+    # Noise
+    noise.image = np.flipud(Norm(PiMask()))
+
+    # RunFrame
+    frames = [fixation, stim, noise]
+    frameDurations = [FixationFrame, practice_soa, NosieFrame] 
+    stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
+
+    # Decision
+    wait = visual.TextStim(win, text="Which leg is longer?", color=1.0, height=48)
     wait.draw()
     win.flip()
-    keys = event.waitKeys(keyList=['x', 'm', 'escape'])
+    keys = event.waitKeys(keyList=['x','m'] + ['escape'])
     if 'escape' in keys:
         print("Experiment aborted by user.")
         break
-    win.flip()
 
     response = 'left' if keys[0] == 'x' else 'right'
     correct = response == ori
 
     # Feedback 
-    feedback_text = "Right" if correct else "Wrong"
-    feedback_color = 'green' if correct else 'red'
+    if correct:
+        feedback_text = "Correct!"
+        feedback_color = 'green'
+        feedback = visual.TextStim(win, text=feedback_text, color=feedback_color, height=36)
+        feedback.draw()
+        win.flip()
+        correctSound1.play()
+        core.wait(0.1)
+        correctSound2.play() 
+        core.wait(0.4) 
+    else:
+        feedback_text = f"Wrong!"
+        feedback_color = 'red'
+        feedback = visual.TextStim(win, text=feedback_text, color=feedback_color, height=36)
+        feedback.draw()
+        win.flip()
+        errorSound.play()
+        core.wait(0.5)  
     
-    feedback = visual.TextStim(win, text=feedback_text, color=feedback_color, height=36)
-    feedback.draw()
     win.flip()
     core.wait(0.5)
-    win.flip()
-    core.wait(0.5)
-
-# Wait for spacebar to begin
-event.waitKeys(keyList=['space'])
-win.flip()
 
 
 # --- Main Staircase Block ---
@@ -167,54 +197,61 @@ for trial in range(n_trials):
         print("Experiment aborted by user.")
         break
 
+    # Fixation
     fixation = visual.TextStim(win, text="+", color=1.0, height=48)
-    fixation.draw()
-    win.flip()
-    core.wait(0.5)
+
+    # Stimulus
     ori = random.choice(oris)
     stim.image = np.flipud(Norm(PiImage(ori = ori)))
-    stim.draw()
+
+    # Noise
+    noise.image = np.flipud(Norm(PiMask()))
+
+    # RunFrame
+    frames = [fixation, stim, noise]
+    frameDurations = [FixationFrame, soa, NosieFrame] 
+    stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
+
+    # Decision
+    wait = visual.TextStim(win, text="Which leg is longer?", color=1.0, height=48)
+    wait.draw()
     win.flip()
-    core.wait(soa)
-    stim.image = np.flipud(Norm(PiMask()))
-    stim.draw()
-    win.flip()
-    core.wait(noise_gap)
-    win.flip()
-    
-    keys = event.waitKeys(keyList=['x','m'] + ['escape'])
+    keys = event.waitKeys(keyList=['x', 'm', 'escape'])
     if 'escape' in keys:
         print("Experiment aborted by user.")
         break
-
+    win.flip()
     response = 'left' if keys[0] == 'x' else 'right'
     correct = response == ori
+
+    # Feedback 
+    if correct:
+        correctSound1.play()
+        core.wait(0.1)
+        correctSound2.play() 
+        core.wait(0.4) 
+    else:
+        errorSound.play()
+        core.wait(0.5)  
+
     data.append({"trial": trial+1, "orientation": ori, "response": response,
                  "correct": correct, "soa": soa})
     if correct:
         correct_counter += 1
         if correct_counter == 2:
-            soa = max(0, soa - step_size)
+            soa = int(max(0, soa - step_size))
             correct_counter = 0
     else:
-        soa = min(1.0, soa + step_size)
+        soa = int(soa + step_size)
         correct_counter = 0
     core.wait(0.5)
 
-# Cleanup 
+hz=round(win.getActualFrameRate())
+[resX,resY]=win.size
+# exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
+
 win.close()
 
-# ---------- Plot ----------
-soas = [d["soa"] for d in data]
-plt.figure(figsize=(8, 4))
-plt.plot(range(1, n_trials + 1), soas, marker='o')
-plt.xlabel("Trial")
-plt.ylabel("Alpha (Visibility)")
-plt.title("2-Down-1-Up Staircase")
-plt.grid(True)
-plt.show()
-
-# Optional: save data
-import pandas as pd
 df = pd.DataFrame(data)
-df.to_csv("Results.csv", index=False)
+df.to_csv(f"{pid}_{sid}_TPi.csv", index=False)
+

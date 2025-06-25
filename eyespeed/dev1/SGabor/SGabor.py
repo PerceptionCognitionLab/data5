@@ -1,8 +1,44 @@
-from psychopy import visual, event, core
+from psychopy import visual, event, core, prefs, sound 
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import pandas as pd
+from PIL import Image, ImageDraw, ImageFont
+sys.path.insert(0, '/home/exp/specl-exp/lib/data5/')
+import expLib51 as exlib
 from scipy.ndimage import gaussian_filter
+
+prefs.hardware['audioLib']=['PTB']
+prefs.hardware['audioLatencyMode']=3
+
+correctSound1=sound.Sound(value=600,secs=0.1)
+correctSound2=sound.Sound(value=800,secs=0.1)
+errorSound=sound.Sound(value=500,secs=0.2)
+
+# region
+refreshRate=165
+exlib.setRefreshRate(refreshRate)
+trialClock=core.Clock()
+expName="mp1"
+dbConf=exlib.data5
+seed = random.randrange(1e6)
+# [pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
+[pid,sid,fname] = [1,1,'Me.dat']
+fptr = open(fname,'w')
+# endregion
+
+# Parameters
+oris = ['left', 'right']
+contrast = 0.2
+contrast_practice = [0.2, 0.3, 0.4]
+step_size = 0.01
+n_trials = 50
+n_practices = 10
+correct_counter = 0
+data = []   
+FixationFrame = 80
+StimFrame = 80
 
 def ShowImage(image):
     plt.imshow(image, cmap='gray', vmin=-1, vmax=1)
@@ -42,16 +78,6 @@ def GaborStimulus(ori, contrast, noise_mean=0.0, noise_std=0.4, size = 512):
 win = visual.Window(size=(1920, 1080), color=0, units="pix", fullscr=True)
 stim = visual.ImageStim(win, size=(512, 512), units="pix")
 
-# Parameters
-oris = ['left', 'right']
-contrast = 0.2
-contrast_practice = [0.2, 0.3, 0.4]
-step_size = 0.01
-n_trials = 50
-n_practices = 10
-correct_counter = 0
-data = []   
-
 # Welcome Screen
 text = visual.TextStim(win, text="Welcome to the experiment! Press SPACE to begin the instruction", color=1.0, height=24)
 text.draw()
@@ -84,18 +110,17 @@ for trial in range(n_practices):
 
     # Fixation
     fixation = visual.TextStim(win, text="+", color=1.0, height=48)
-    fixation.draw()
-    win.flip()
-    core.wait(0.5)
 
     # Stimulus
     ori, practice_contrast = random.choice(oris), random.choice(contrast_practice)
     stim.image = np.flipud(GaborStimulus(ori = ori, contrast=practice_contrast))
-    stim.draw()
-    win.flip()
-    core.wait(0.5)  
-    win.flip()
-    
+
+   # RunFrame
+    frames = [fixation, stim]
+    frameDurations = [FixationFrame, StimFrame] 
+    stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
+
+    # Decision
     wait = visual.TextStim(win, text="Choose the orientation", color=1.0, height=48)
     wait.draw()
     win.flip()
@@ -112,14 +137,22 @@ for trial in range(n_practices):
     if correct:
         feedback_text = "Correct!"
         feedback_color = 'green'
+        feedback = visual.TextStim(win, text=feedback_text, color=feedback_color, height=36)
+        feedback.draw()
+        win.flip()
+        correctSound1.play()
+        core.wait(0.1)
+        correctSound2.play() 
+        core.wait(0.4) 
     else:
-        feedback_text = 'Wrong!'
+        feedback_text = f"Wrong!"
         feedback_color = 'red'
+        feedback = visual.TextStim(win, text=feedback_text, color=feedback_color, height=36)
+        feedback.draw()
+        win.flip()
+        errorSound.play()
+        core.wait(0.5)  
 
-    feedback = visual.TextStim(win, text=feedback_text, color=feedback_color, height=36)
-    feedback.draw()
-    win.flip()
-    core.wait(0.5)  
     win.flip()
     core.wait(0.5)
 
@@ -141,32 +174,40 @@ for trial in range(n_trials):
 
     # Fixation
     fixation = visual.TextStim(win, text="+", color=1.0, height=48)
-    fixation.draw()
-    win.flip()
-    core.wait(0.5) 
 
     # Stimulus
     ori = random.choice(oris)
     stim.image = np.flipud(GaborStimulus(ori=ori, contrast = contrast))
-    stim.draw()
-    win.flip()
-    core.wait(0.5)
-    win.flip()
-    
+
+    # RunFrame
+    frames = [fixation, stim]
+    frameDurations = [FixationFrame, StimFrame] 
+    stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
+
+    # Decision
     wait = visual.TextStim(win, text="Choose the orientation", color=1.0, height=48)
     wait.draw()
     win.flip()
-
-    # Decision
     keys = event.waitKeys(keyList=['x', 'm', 'escape'])
     if 'escape' in keys:
         print("Experiment aborted by user.")
         break
     win.flip()
-    
+
     response = 'left' if keys[0] == 'x' else 'right'
     correct = response == ori
-    data.append({"trial": trial+1, "orientation": ori, "response": response,
+
+    # Feedback 
+    if correct:
+        correctSound1.play()
+        core.wait(0.1)
+        correctSound2.play() 
+        core.wait(0.4) 
+    else:
+        errorSound.play()
+        core.wait(0.5)  
+
+    data.append({"trial": trial + 1, "orientation": ori, "response": response,
                  "correct": correct, "contrasts": contrast})
     if correct:
         correct_counter += 1
@@ -174,24 +215,15 @@ for trial in range(n_trials):
             contrast = max(0, contrast - step_size)
             correct_counter = 0
     else:
-        contrast = min(1.0, contrast + step_size)
+        contrast = contrast + step_size
         correct_counter = 0
     core.wait(0.5)
 
-# Cleanup 
+hz=round(win.getActualFrameRate())
+[resX,resY]=win.size
+# exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
+
 win.close()
 
-# ---------- Plot ----------
-contrasts = [d["contrast"] for d in data]
-plt.figure(figsize=(8, 4))
-plt.plot(range(1, n_trials + 1), contrasts, marker='o')
-plt.xlabel("Trial")
-plt.ylabel("Alpha (Visibility)")
-plt.title("2-Down-1-Up Staircase")
-plt.grid(True)
-plt.show()
-
-# Optional: save data
-import pandas as pd
 df = pd.DataFrame(data)
-df.to_csv("Results.csv", index=False)
+df.to_csv(f"{pid}_{sid}_SGabor.csv", index=False)

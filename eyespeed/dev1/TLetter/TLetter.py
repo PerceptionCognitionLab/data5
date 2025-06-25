@@ -1,10 +1,45 @@
-from psychopy import visual, event, core
+from psychopy import visual, event, core, prefs, sound 
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 from numpy.fft import fft2, ifft2, fftshift, ifftshift
+sys.path.insert(0, '/home/exp/specl-exp/lib/data5/')
+import expLib51 as exlib
 
+prefs.hardware['audioLib']=['PTB']
+prefs.hardware['audioLatencyMode']=3
+
+# region
+refreshRate=165
+exlib.setRefreshRate(refreshRate)
+trialClock=core.Clock()
+expName="mp1"
+dbConf=exlib.data5
+seed = random.randrange(1e6)
+# [pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
+[pid,sid,fname] = [1,1,'Me.dat']
+fptr = open(fname,'w')
+# endregion
+
+correctSound1=sound.Sound(value=600,secs=0.1)
+correctSound2=sound.Sound(value=800,secs=0.1)
+errorSound=sound.Sound(value=500,secs=0.2)
+
+# Parameters
+letters = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L']
+noises = ['#', '@', '$', '%', '&']
+soa = 20
+soa_practice = [20, 24, 28]
+step_size = 1
+n_trials = 50
+n_practices = 10
+correct_counter = 0
+data = []
+FixationFrame = 80
+NosieFrame = 8
 
 # Letter Stimulus 
 def ShowImage(image):
@@ -31,18 +66,6 @@ def Norm(image):
 # Visual Setup
 win = visual.Window(size=(1920, 1080), color=-1, units="pix", fullscr=True)
 stim = visual.ImageStim(win, size=(512, 512), units="pix")
-
-# Parameters
-letters = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L']
-noises = ['#', '@', '$', '%', '&']
-soa = 0.1
-soa_practice = [0.1, 0.15, 0.2]
-noise_gap = 0.05
-step_size = 0.005
-n_trials = 50
-n_practices = 10
-correct_counter = 0
-data = []
 
 # Welcome Screen
 text = visual.TextStim(win, text="Welcome to the experiment! Press SPACE to begin the instruction", color=1.0, height=24)
@@ -77,23 +100,22 @@ for trial in range(n_practices):
 
     # Fixation
     fixation = visual.TextStim(win, text="+", color=1.0, height=48)
-    fixation.draw()
-    win.flip()
-    core.wait(0.5)
 
     # Stimulus
     letter, practice_soa = random.choice(letters), random.choice(soa_practice)
     stim.image = np.flipud(Norm(LetterImage(letter)))
-    stim.draw()
-    win.flip()
-    core.wait(practice_soa)
-    for i in range(3):
-        noise = random.choice(noises)
-        stim.image = np.flipud(Norm(LetterImage(noise)))
-        stim.draw()
-        win.flip()
-        core.wait(noise_gap)
-        
+
+    # Noise
+    noises = random.sample(noises, 3)
+    noise0 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(LetterImage(noises[0]))))
+    noise1 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(LetterImage(noises[1]))))
+    noise2 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(LetterImage(noises[2]))))
+
+    # RunFrame
+    frames = [fixation, stim, noise0, noise1, noise2]
+    frameDurations = [FixationFrame, practice_soa, NosieFrame, NosieFrame, NosieFrame] 
+    stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
+
     # Decision
     wait = visual.TextStim(win, text="Choose the letter", color=1.0, height=48)
     wait.draw()
@@ -103,8 +125,6 @@ for trial in range(n_practices):
         print("Experiment aborted by user.")
         break
     win.flip()
-
-
     response = keys[0].upper()
     correct = response == letter
 
@@ -112,20 +132,28 @@ for trial in range(n_practices):
     if correct:
         feedback_text = "Correct!"
         feedback_color = 'green'
+        feedback = visual.TextStim(win, text=feedback_text, color=feedback_color, height=36)
+        feedback.draw()
+        win.flip()
+        correctSound1.play()
+        core.wait(0.1)
+        correctSound2.play() 
+        core.wait(0.4) 
     else:
         feedback_text = f"Wrong! The correct letter was: {letter}"
         feedback_color = 'red'
-    
-    feedback = visual.TextStim(win, text=feedback_text, color=feedback_color, height=36)
-    feedback.draw()
-    win.flip()
-    core.wait(0.5)  
+        feedback = visual.TextStim(win, text=feedback_text, color=feedback_color, height=36)
+        feedback.draw()
+        win.flip()
+        errorSound.play()
+        core.wait(0.5)  
+
     win.flip()
     core.wait(0.5)
 
 
 # --- Main Staircase Block ---
-text = visual.TextStim(win, text="Excellent! Here comes the main experiment. This time the task is more difficult, please pay attention\
+text = visual.TextStim(win, text="Excellent! Here comes the main experiment. No feedback on correct letter will be given! This time the task is more difficult, please pay attention\
                                 \n\n Choose the letter using the second row of the keyboard.\
                                 \n\n Press SPACE to start the main experiment. ", color=1.0, height=24)
 
@@ -138,57 +166,64 @@ for trial in range(n_trials):
         print("Experiment aborted by user.")
         break
 
+    # Fixation
     fixation = visual.TextStim(win, text="+", color=1.0, height=48)
-    fixation.draw()
-    win.flip()
-    core.wait(0.5)
+
+    # Stimulus
     letter = random.choice(letters)
     stim.image = np.flipud(Norm(LetterImage(letter)))
-    stim.draw()
+
+    # Noise
+    noises = random.sample(noises, 3)
+    noise0 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(LetterImage(noises[0]))))
+    noise1 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(LetterImage(noises[1]))))
+    noise2 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(LetterImage(noises[2]))))
+
+    # RunFrame
+    frames = [fixation, stim, noise0, noise1, noise2]
+    frameDurations = [FixationFrame,soa, NosieFrame, NosieFrame, NosieFrame] 
+    stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
+
+    # Decision
+    wait = visual.TextStim(win, text="Choose the letter", color=1.0, height=48)
+    wait.draw()
     win.flip()
-    core.wait(soa)
-    for i in range(3):
-        noise = random.choice(noises)
-        stim.image = np.flipud(Norm(LetterImage(noise)))
-        stim.draw()
-        win.flip()
-        core.wait(noise_gap)
-        
-    win.flip()
-    
-    keys = event.waitKeys(keyList=[l.lower() for l in letters] + ['escape'])
+    keys = event.waitKeys(keyList=['a', 's', 'd','f','g','h','j','k','l','escape'])
     if 'escape' in keys:
         print("Experiment aborted by user.")
         break
-
+    win.flip()
     response = keys[0].upper()
-    correct = response == true_letter
+    correct = response == letter
+
+    # Feedback 
+    if correct:
+        correctSound1.play()
+        core.wait(0.1)
+        correctSound2.play() 
+        core.wait(0.4) 
+    else:
+        errorSound.play()
+        core.wait(0.5)  
+
     data.append({"trial": trial+1, "letter": letter, "response": response,
                  "correct": correct, "soa": soa})
     if correct:
         correct_counter += 1
         if correct_counter == 2:
-            soa = max(0, soa - step_size)
+            soa = int(max(0, soa - step_size))
             correct_counter = 0
     else:
-        soa = min(1.0, soa + step_size)
+        soa = int(soa + step_size)
         correct_counter = 0
     core.wait(0.5)
 
-# Cleanup 
+hz=round(win.getActualFrameRate())
+[resX,resY]=win.size
+# exlib.stopExp(sid,hz,resX,resY,seed,dbConf)
+
 win.close()
 
-# ---------- Plot ----------
-soas = [d["soa"] for d in data]
-plt.figure(figsize=(8, 4))
-plt.plot(range(1, n_trials + 1), soas, marker='o')
-plt.xlabel("Trial")
-plt.ylabel("Alpha (Visibility)")
-plt.title("2-Down-1-Up Staircase")
-plt.grid(True)
-plt.show()
-
-# Optional: save data
-import pandas as pd
 df = pd.DataFrame(data)
-df.to_csv("Results.csv", index=False)
+df.to_csv(f"{pid}_{sid}_TLetter.csv", index=False)
+

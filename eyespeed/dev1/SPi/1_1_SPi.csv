@@ -1,0 +1,6 @@
+trial,orientation,response,correct,alphas
+1,right,right,True,0.2
+2,left,right,False,0.2
+3,right,right,True,0.21000000000000002
+4,left,left,True,0.21000000000000002
+5,right,right,True,0.2

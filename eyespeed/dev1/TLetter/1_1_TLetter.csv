@@ -1,0 +1,6 @@
+trial,letter,response,correct,soa
+1,S,S,True,16
+2,D,D,True,16
+3,S,L,False,15
+4,H,L,False,16
+5,S,J,False,17

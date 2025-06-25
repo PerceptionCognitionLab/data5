@@ -1,0 +1,6 @@
+trial,orientation,response,correct,contrasts
+1,left,left,True,0.2
+2,left,left,True,0.2
+3,left,right,False,0.19
+4,left,right,False,0.2
+5,left,right,False,0.21000000000000002

@@ -1,0 +1,6 @@
+trial,orientation,response,correct,soa
+1,left,left,True,16
+2,right,right,True,16
+3,right,left,False,15
+4,left,left,True,16
+5,right,right,True,16
