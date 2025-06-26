@@ -31,15 +31,15 @@ errorSound=sound.Sound(value=500,secs=0.2)
 # Parameters
 letters = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L']
 noises = ['#', '@', '$', '%', '&']
-soa = 20
-soa_practice = [20, 24, 28]
+soa = 10
+soa_practice = [10, 12, 14]
 step_size = 1
 n_trials = 50
 n_practices = 10
 correct_counter = 0
 data = []
 FixationFrame = 80
-NosieFrame = 8
+NosieFrame = 3
 
 # Letter Stimulus 
 def ShowImage(image):
@@ -65,7 +65,7 @@ def Norm(image):
 
 # Visual Setup
 win = visual.Window(size=(1920, 1080), color=-1, units="pix", fullscr=True)
-stim = visual.ImageStim(win, size=(512, 512), units="pix")
+stim = visual.ImageStim(win, size=(512,512), units="pix")
 
 # Welcome Screen
 text = visual.TextStim(win, text="Welcome to the experiment! Press SPACE to begin the instruction", color=1.0, height=24)

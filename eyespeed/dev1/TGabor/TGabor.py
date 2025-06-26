@@ -30,10 +30,11 @@ fptr = open(fname,'w')
 
 # Parameters
 oris = ['left', 'right']
-soa = 20
+soa = 10
 soa_practice = [20, 24, 28]
 n_trials = 50
-n_practices = 10
+step_size = 1
+n_practices = 1
 correct_counter = 0
 data = []
 FixationFrame = 80
