@@ -30,15 +30,15 @@ errorSound=sound.Sound(value=500,secs=0.2)
 
 # Parameters
 oris = ['left', 'right']
-soa = 20
-soa_practice = [20, 24, 28]
+soa = 15
+soa_practice = [15, 20, 25]
 step_size = 1
 n_trials = 50
 n_practices = 10
 correct_counter = 0
 data = []
 FixationFrame = 80
-NosieFrame = 80
+NosieFrame = 8
 
 def ShowImage(image):
     plt.imshow(image, cmap='gray', vmin=0, vmax=1)
@@ -46,53 +46,79 @@ def ShowImage(image):
     plt.show()
 
 
-def PiImage(ori = None):
-    size, fixed_length, diff, leg_width, bar_height = 128, 80, 20, 1, 2
+def PiImage(ori=None, diff=10, size=128):
+    fixed_length, leg_width, bar_height = 80, 1, 2
     Pi = np.zeros((size, size)) 
 
-    spacing = size // 3
+    spacing = size // 2 - 15
     left_x = spacing
-    right_x = size - spacing 
-
+    right_x = size - spacing - leg_width
     bar_y = int(size * 1/4) 
 
-    if ori == 'right':
-        left_len = fixed_length
+    if ori is None:
+        right_len = fixed_length + diff * 3
+        left_len = fixed_length + diff * 3
+        Pi[bar_y:bar_y + left_len // 2, left_x:left_x + leg_width] = 1
+        Pi[bar_y:bar_y + right_len // 2, right_x:right_x + leg_width] = 1
+    elif ori == 'right':
         right_len = fixed_length + diff
+        left_len = fixed_length
+        Pi[bar_y:bar_y + left_len // 2, left_x:left_x + leg_width] = 1
+        Pi[bar_y:bar_y + right_len // 2, right_x:right_x + leg_width] = 1
     elif ori == 'left':
         right_len = fixed_length
         left_len = fixed_length + diff
-
-    Pi[bar_y:bar_y + left_len // 2, left_x:left_x + leg_width] = 1
-    Pi[bar_y:bar_y + right_len // 2, right_x:right_x + leg_width] = 1
+        Pi[bar_y:bar_y + left_len // 2, left_x:left_x + leg_width] = 1
+        Pi[bar_y:bar_y + right_len // 2, right_x:right_x + leg_width] = 1
 
     bar_y1 = bar_y - bar_height // 2
     bar_y2 = bar_y + bar_height // 2
-    Pi[bar_y1:bar_y2, left_x + leg_width:right_x] = 1
-            
+    Pi[bar_y1:bar_y2, left_x + leg_width:right_x] = 1 
+
     return Pi.astype(np.float32)
 
-def PiMask(size=128, num_shapes=10):
-    mask = np.zeros((size, size), dtype=np.uint8)
-    spacing = size // 3
+def PiMask(size=128, num_shapes=20):
+    mask = np.zeros((size, size))
+    spacing = size // 3 + 10
     left_x = spacing
     right_x = size - spacing 
+
     for _ in range(num_shapes):
         for x_base in [left_x, right_x]:
-            x = x_base + np.random.randint(-5, 5)
-            y1 = np.random.randint(20, size - 20)
-            y2 = y1 + np.random.randint(5, 20)
-            cv2.line(mask, (x, y1), (x, y2), 255, thickness=1)
+            # Choose a tilt angle (in radians) between -30° and +30°
+            angle_deg = np.random.uniform(-45, 45)
+            angle_rad = np.deg2rad(angle_deg)
 
+            # Pick random starting y and length
+            y1 = np.random.randint(20, size - 40)
+            length = np.random.randint(5, 20)
+
+            # Compute x2/y2 with tilt
+            dx = int(np.sin(angle_rad) * length)   # horizontal shift
+            dy = int(np.cos(angle_rad) * length)   # vertical shift
+
+            x1 = x_base + np.random.randint(-5, 5)
+            x2 = x1 + dx
+            y2 = y1 + dy
+
+            cv2.line(mask, (x1, y1), (x2, y2), 1, thickness=1)
+
+    for _ in range(num_shapes//2):
+        # The small diagonal line in between left and right columns
         x1 = np.random.randint(left_x, right_x)
-        y = np.random.randint(size // 6, size // 4)
-        angle = np.random.choice([-1, 1]) * np.random.randint(5, 15)
-        x2 = x1 + angle
-        y2 = y + np.random.randint(5, 15)
-        cv2.line(mask, (x1, y), (x2, y2), 255, thickness=1)
-        
-    return (mask / 255).astype(np.float32)
+        y1 = np.random.randint(size // 6, size // 4)
+        length = np.random.randint(5, 15)
+        angle_deg = np.random.uniform(-45, 45)
+        angle_rad = np.deg2rad(angle_deg)
 
+        dx = int(np.cos(angle_rad) * length)
+        dy = int(np.sin(angle_rad) * length)
+
+        x2 = x1 + dx
+        y2 = y1 + dy
+        cv2.line(mask, (x1, y1), (x2, y2), 1, thickness=1)
+
+    return mask
 
 def Norm(image):
     return 2 * image - 1
@@ -100,10 +126,9 @@ def Norm(image):
 # Visual Setup
 win = visual.Window(size=(1920, 1080), color=-1, units="pix", fullscr=True)
 stim = visual.ImageStim(win, size=(512, 512), units="pix")
-noise = visual.ImageStim(win, size=(512, 512), units="pix")
 
 # Welcome Screen
-text = visual.TextStim(win, text="Welcome to the experiment! Press SPACE to begin the instruction", color=1.0, height=24)
+text = visual.TextStim(win, text="Welcome to the experiment! Press SPACE to begin the instruction", color=1.0, height=20)
 text.draw()
 win.flip()
 event.waitKeys(keyList=['space'])
@@ -113,7 +138,7 @@ text = visual.TextStim(win, text="In this experiment, you will see a Pi-shape ta
                                         The below one has a longer left leg.\
                                         \n\n The Pi-shaped target will be briefly flashed and then immediately masked by some random lines, your task is to identify which leg is longer after the Pi-shape target is briefly presented at the center of the screen\
                                         \n\n If you think the left leg is longer, press 'x'. If you think the right leg is longer, press 'm'.\
-                                        \n\n Press SPACE to continue", color=1.0, height=24, pos = (0, 250))
+                                        \n\n Press SPACE to continue", color=1.0, height=20, pos = (0, 250))
 text.draw()
 image = visual.ImageStim(image = np.flipud(Norm(PiImage(ori = 'left'))), win = win, size=(512, 512), pos = (0, -250), units="pix")
 image.draw()
@@ -123,7 +148,7 @@ event.waitKeys(keyList=['space'])
 # Practice trail screen
 text = visual.TextStim(win, text="We will begin with several practice trials, feedback on correctness will be provided after each trial.\
                                 \n\n If you think the left leg is longer, press 'x'. If you think the right leg is longer, press 'm'.\
-                                \n\n Press SPACE to start the practice trials. ", color=1.0, height=24)
+                                \n\n Press SPACE to start the practice trials. ", color=1.0, height=20)
 text.draw()
 win.flip()
 event.waitKeys(keyList=['space'])
@@ -140,15 +165,15 @@ for trial in range(n_practices):
     stim.image = np.flipud(Norm(PiImage(ori = ori)))
 
     # Noise
-    noise.image = np.flipud(Norm(PiMask()))
-
+    noise1, noise2, noise3, noise4, noise5 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(PiMask()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(PiMask()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(PiMask()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(PiMask()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(PiMask())))
+    
     # RunFrame
-    frames = [fixation, stim, noise]
-    frameDurations = [FixationFrame, practice_soa, NosieFrame] 
+    frames = [fixation, stim, noise1, noise2, noise3, noise4, noise5]
+    frameDurations = [FixationFrame, practice_soa, NosieFrame, NosieFrame, NosieFrame,NosieFrame,NosieFrame] 
     stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
 
     # Decision
-    wait = visual.TextStim(win, text="Which leg is longer?", color=1.0, height=48)
+    wait = visual.TextStim(win, text="", color=1.0, height=48)
     wait.draw()
     win.flip()
     keys = event.waitKeys(keyList=['x','m'] + ['escape'])
@@ -204,16 +229,17 @@ for trial in range(n_trials):
     ori = random.choice(oris)
     stim.image = np.flipud(Norm(PiImage(ori = ori)))
 
-    # Noise
-    noise.image = np.flipud(Norm(PiMask()))
+   # Noise
+    noise1, noise2, noise3, noise4, noise5 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(PiMask()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(PiMask()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(PiMask()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(PiMask()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(PiMask())))
 
     # RunFrame
-    frames = [fixation, stim, noise]
-    frameDurations = [FixationFrame, soa, NosieFrame] 
+    frames = [fixation, stim, noise1, noise2, noise3, noise4, noise5]
+    frameDurations = [FixationFrame, soa, NosieFrame, NosieFrame, NosieFrame,NosieFrame,NosieFrame] 
     stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
 
+
     # Decision
-    wait = visual.TextStim(win, text="Which leg is longer?", color=1.0, height=48)
+    wait = visual.TextStim(win, text="", color=1.0, height=48)
     wait.draw()
     win.flip()
     keys = event.waitKeys(keyList=['x', 'm', 'escape'])

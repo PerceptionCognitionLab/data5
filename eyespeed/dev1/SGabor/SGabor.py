@@ -30,15 +30,16 @@ fptr = open(fname,'w')
 
 # Parameters
 oris = ['left', 'right']
-contrast = 0.2
-contrast_practice = [0.2, 0.3, 0.4]
-step_size = 0.01
+contrast = 0.6
+contrast_practice = [0.6, 0.7, 0.8]
+step_size = 0.05
 n_trials = 50
-n_practices = 10
+n_practices = 1
 correct_counter = 0
 data = []   
 FixationFrame = 80
 StimFrame = 80
+
 
 def ShowImage(image):
     plt.imshow(image, cmap='gray', vmin=-1, vmax=1)
@@ -46,7 +47,7 @@ def ShowImage(image):
     plt.show()
 
 
-def GaborImage(ori, contrast, size=512, sf = 5):
+def GaborImage(ori, contrast =0.15, size=512, sf = 5, decay = 0.25):
     x = np.linspace(-1, 1, size)
     y = np.linspace(-1, 1, size)
     X, Y = np.meshgrid(x, y)
@@ -58,21 +59,28 @@ def GaborImage(ori, contrast, size=512, sf = 5):
         
     X_rot = X * np.cos(theta) + Y * np.sin(theta)
     grating = contrast * np.cos(2 * np.pi * sf * X_rot)
-
-    gauss =  np.exp(-(X**2 + Y**2) / (2 * 0.25**2))
+    gauss =  np.exp(-(X**2 + Y**2) / (2 * decay**2))
     gabor = grating * gauss
 
-    # Normalize to [-1, 1]
     gabor = np.clip(gabor, -1, 1)
+
     return gabor
 
-# === Generate Noise ===
+
 def GaborStimulus(ori, contrast, noise_mean=0.0, noise_std=0.4, size = 512):
     gabor = GaborImage(ori, contrast)
-    noise = np.random.normal(loc=noise_mean, scale=noise_std, size=(size, size))
+
+    squeeze_size = size // 8
+    squeeze_noise = np.random.normal(
+        loc=noise_mean,
+        scale=noise_std,
+        size=(squeeze_size, squeeze_size)
+    )
+    noise = np.repeat(np.repeat(squeeze_noise, 8, axis=0), 8, axis=1)
+    noise = np.clip(noise, -1, 1)
+
     gabor = np.clip(gabor + noise, -1, 1)
     return gabor
-
 
 # Visual Setup
 win = visual.Window(size=(1920, 1080), color=0, units="pix", fullscr=True)
@@ -89,9 +97,9 @@ text = visual.TextStim(win, text="In this experiment, you will see a grating emb
                                         The below one is an up-to-left grating.\
                                         \n\n In this experiment, your task is to identify whether the grating is up-to-left or up-to-right after it is briefly presented at the center of the screen\
                                         \n\n If you think the grating is up-to-left, press 'x'. If you think the grating is up-to-right, press 'm'.\
-                                        \n\n Press SPACE to continue", color=1.0, height=24, pos = (0, 300))
+                                        \n\n Press SPACE to continue", color=1.0, height=20, pos = (0, 300))
 text.draw()
-image = visual.ImageStim(image = np.flipud(GaborStimulus(ori= 'left', contrast = 0.4)), win = win, size=(512, 512), pos = (0, -200), units="pix")
+image = visual.ImageStim(image = np.flipud(GaborStimulus(ori= 'left', contrast = 0.6)), win = win, size=(512, 512), pos = (0, -200), units="pix")
 image.draw()
 win.flip()
 event.waitKeys(keyList=['space'])
@@ -99,7 +107,7 @@ event.waitKeys(keyList=['space'])
 # Practice trail screen
 text = visual.TextStim(win, text="We will begin with several practice trials, feedback on correctness will be provided after each trial.\
                                 \n\n If you think the grating is up-to-left, press 'x'. If you think the grating is up-to-right, press 'm'.\
-                                \n\n Press SPACE to start the practice trials. ", color=1.0, height=24)
+                                \n\n Press SPACE to start the practice trials. ", color=1.0, height=20)
 text.draw()
 win.flip()
 event.waitKeys(keyList=['space'])
@@ -160,7 +168,7 @@ for trial in range(n_practices):
 # --- Main Staircase Block ---
 text = visual.TextStim(win, text="Excellent! Here comes the main experiment. This time the task is more difficult, please pay attention\
                                 \n\n If you think the grating is up-to-left, press 'x'. If you think the grating is up-to-right, press 'm'.\
-                                \n\n Press SPACE to start the main experiment. ", color=1.0, height=34)
+                                \n\n Press SPACE to start the main experiment. ", color=1.0, height=20)
 
 text.draw()
 win.flip()

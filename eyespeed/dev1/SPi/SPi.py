@@ -8,6 +8,7 @@ from PIL import Image, ImageDraw, ImageFont
 sys.path.insert(0, '/home/exp/specl-exp/lib/data5/')
 import expLib51 as exlib
 from scipy.ndimage import gaussian_filter
+import cv2
 
 prefs.hardware['audioLib']=['PTB']
 prefs.hardware['audioLatencyMode']=3
@@ -30,11 +31,11 @@ errorSound=sound.Sound(value=500,secs=0.2)
 
 # Parameters
 oris = ['left', 'right']
-alpha = 0.2
-alpha_practice = [0.2, 0.24, 0.28]
-step_size = 0.01
+diff= 15
+diff_practice = [15, 20, 25]
+step_size = 1
 n_trials = 50
-n_practices = 10
+n_practices = 1
 correct_counter = 0
 data = []
 FixationFrame = 80
@@ -47,63 +48,92 @@ def ShowImage(image):
     plt.show()
 
 
-def PiImage(ori = None, diff = 20):
-    size, fixed_length, diff, leg_width, bar_height = 128, 80, diff, 2, 2
+def PiImage(ori=None, diff=10, size=128):
+    fixed_length, leg_width, bar_height = 80, 1, 2
     Pi = np.zeros((size, size)) 
 
-    spacing = size // 3
+    spacing = size // 2 - 15
     left_x = spacing
     right_x = size - spacing - leg_width
-
     bar_y = int(size * 1/4) 
 
-    if ori == None:
+    if ori is None:
         right_len = fixed_length + diff * 3
         left_len = fixed_length + diff * 3
-
         Pi[bar_y:bar_y + left_len // 2, left_x:left_x + leg_width] = 1
         Pi[bar_y:bar_y + right_len // 2, right_x:right_x + leg_width] = 1
-
-        bar_y1 = bar_y - bar_height // 2
-        bar_y2 = bar_y + bar_height // 2
-        Pi[bar_y1:bar_y2, left_x + leg_width:right_x] = 1
-
-        return Pi.astype(np.float32)
-        
     elif ori == 'right':
         right_len = fixed_length + diff
         left_len = fixed_length
-    elif ori == 'left' :
-        right_len = fixed_length 
+        Pi[bar_y:bar_y + left_len // 2, left_x:left_x + leg_width] = 1
+        Pi[bar_y:bar_y + right_len // 2, right_x:right_x + leg_width] = 1
+    elif ori == 'left':
+        right_len = fixed_length
         left_len = fixed_length + diff
-
-    Pi[bar_y:bar_y + left_len // 2, left_x:left_x + leg_width] = 0.5
-    Pi[bar_y:bar_y + right_len // 2, right_x:right_x + leg_width] = 0.5
+        Pi[bar_y:bar_y + left_len // 2, left_x:left_x + leg_width] = 1
+        Pi[bar_y:bar_y + right_len // 2, right_x:right_x + leg_width] = 1
 
     bar_y1 = bar_y - bar_height // 2
     bar_y2 = bar_y + bar_height // 2
-    Pi[bar_y1:bar_y2, left_x + leg_width:right_x] = 0.5
-            
+    Pi[bar_y1:bar_y2, left_x + leg_width:right_x] = 1 
+
     return Pi.astype(np.float32)
 
-def AddNoise(sigma = 3):
-    blur = gaussian_filter(PiImage(ori = None), sigma=sigma)
-    blur = (blur - blur.min()) / (blur.max() - blur.min())
-    return blur
+
+def AddNoise(image, num_shapes=20):
+    size = image.shape[0]
+    mask = np.zeros((size, size), dtype=np.uint8)
+    spacing = size // 3 + 10
+    left_x = spacing
+    right_x = size - spacing 
+
+    for _ in range(num_shapes):
+        for x_base in [left_x, right_x]:
+            # Choose a tilt angle (in radians) between -30° and +30°
+            angle_deg = np.random.uniform(-45, 45)
+            angle_rad = np.deg2rad(angle_deg)
+
+            # Pick random starting y and length
+            y1 = np.random.randint(20, size - 40)
+            length = np.random.randint(5, 20)
+
+            # Compute x2/y2 with tilt
+            dx = int(np.sin(angle_rad) * length)   # horizontal shift
+            dy = int(np.cos(angle_rad) * length)   # vertical shift
+
+            x1 = x_base + np.random.randint(-5, 5)
+            x2 = x1 + dx
+            y2 = y1 + dy
+
+            cv2.line(mask, (x1, y1), (x2, y2), 255, thickness=1)
+
+    for _ in range(num_shapes//2):
+        # The small diagonal line in between left and right columns
+        x1 = np.random.randint(left_x, right_x)
+        y1 = np.random.randint(size // 6, size // 4)
+        length = np.random.randint(5, 15)
+        angle_deg = np.random.uniform(-45, 45)
+        angle_rad = np.deg2rad(angle_deg)
+
+        dx = int(np.cos(angle_rad) * length)
+        dy = int(np.sin(angle_rad) * length)
+
+        x2 = x1 + dx
+        y2 = y1 + dy
+        cv2.line(mask, (x1, y1), (x2, y2), 255, thickness=1)
+
+    return np.clip(image + mask, 0, 1)
 
 
-def PiStimulus(ori, alpha = 0.01, diff = 20, show = False):
-    noise = AddNoise()
-    Pi = PiImage(ori = ori, diff = diff)
-    Pi = Pi * alpha + noise * (1 - alpha)
-
-    if show == True:
-        ShowImage(Pi)
-    return Pi
-
+def PiStimulus(ori, diff, show=False):
+    Pi_image = AddNoise(PiImage(ori = ori, diff = diff))
+    if show:
+        ShowImage(Pi_image)
+    return Pi_image
 
 def Norm(image):
     return 2 * image - 1
+
 
 # Visual Setup
 win = visual.Window(size=(1920, 1080), color=-1, units="pix", fullscr=True)
@@ -116,13 +146,13 @@ win.flip()
 event.waitKeys(keyList=['space'])
 
 # Instruction Screen
-text = visual.TextStim(win, text="In this experiment, you will see a Pi-shape target embedded in blur. The two legs of the Pi-shape stimulus has different length.\
+text = visual.TextStim(win, text="In this experiment, you will see a Pi-shape target embedded in random lines. The two legs of the Pi-shape stimulus has different length.\
                                         The below one has a longer left leg.\
                                         \n\n In this experiment, your task is to identify which leg is longer after the Pi-shape target is briefly presented at the center of the screen\
                                         \n\n If you think the left leg is longer, press 'x'. If you think the right leg is longer, press 'm'.\
-                                        \n\n Press SPACE to continue", color=1.0, height=24, pos = (0, 200))
+                                        \n\n Press SPACE to continue", color=1.0, height=18, pos = (0, 200))
 text.draw()
-image = visual.ImageStim(image = np.flipud(Norm(PiStimulus(ori = 'left', alpha = 0.25))), win = win, size=(512, 512), pos = (0, -200), units="pix")
+image = visual.ImageStim(image = np.flipud(Norm(PiStimulus(ori = 'left', diff = 20))), win = win, size=(512, 512), pos = (0, -200), units="pix")
 image.draw()
 win.flip()
 event.waitKeys(keyList=['space'])
@@ -143,8 +173,8 @@ for trial in range(n_practices):
     fixation = visual.TextStim(win, text="+", color=1.0, height=48)
 
     # Stimulus
-    ori, practice_alpha = random.choice(oris), random.choice(alpha_practice)
-    stim.image = np.flipud(Norm(PiStimulus(ori=ori, alpha=practice_alpha)))
+    ori, practice_diff = random.choice(oris), random.choice(diff_practice)
+    stim.image = np.flipud(Norm(PiStimulus(ori=ori, diff=practice_diff)))
 
     # RunFrame
     frames = [fixation, stim]
@@ -152,7 +182,7 @@ for trial in range(n_practices):
     stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
 
     # Decision
-    wait = visual.TextStim(win, text="Choose the orientation", color=1.0, height=48)
+    wait = visual.TextStim(win, text="", color=1.0, height=48)
     wait.draw()
     win.flip()
     keys = event.waitKeys(keyList=['x', 'm', 'escape'])
@@ -206,8 +236,8 @@ for trial in range(n_trials):
     fixation = visual.TextStim(win, text="+", color=1.0, height=48)
 
     # Stimulus
-    ori = random.choice(oris)
-    stim.image = np.flipud(Norm(PiStimulus(ori=ori, alpha=alpha)))
+    ori, practice_diff = random.choice(oris), random.choice(diff_practice)
+    stim.image = np.flipud(Norm(PiStimulus(ori=ori, diff=practice_diff)))
 
     # RunFrame
     frames = [fixation, stim]
@@ -215,7 +245,7 @@ for trial in range(n_trials):
     stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
 
     # Decision
-    wait = visual.TextStim(win, text="Choose the leg", color=1.0, height=48)
+    wait = visual.TextStim(win, text="", color=1.0, height=48)
     wait.draw()
     win.flip()
     keys = event.waitKeys(keyList=['x', 'm', 'escape'])
@@ -238,16 +268,17 @@ for trial in range(n_trials):
         core.wait(0.5)  
 
     data.append({"trial": trial + 1, "orientation": ori, "response": response,
-                 "correct": correct, "alphas": alpha})
+                 "correct": correct, "diffs": diff})
     if correct:
         correct_counter += 1
         if correct_counter == 2:
-            alpha = max(0, alpha - step_size)
+            diff = max(0, diff - step_size)
             correct_counter = 0
     else:
-        alpha = alpha + step_size
+        diff = diff + step_size
         correct_counter = 0
     core.wait(0.5)
+
 
 hz=round(win.getActualFrameRate())
 [resX,resY]=win.size

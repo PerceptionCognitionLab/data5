@@ -31,9 +31,9 @@ errorSound=sound.Sound(value=500,secs=0.2)
 
 # Parameters
 letters = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L']
-alpha = 0.08
-alpha_practice = [0.08, 0.10, 0.12]
-step_size = 0.005
+alpha = 0.15
+alpha_practice = [0.15, 0.20, 0.25]
+step_size = 0.01
 n_trials = 50
 n_practices = 10
 correct_counter = 0
@@ -43,20 +43,35 @@ StimFrame = 80
 
 # Letter Stimulus 
 def ShowImage(image):
-    plt.imshow(image, cmap='gray', vmin=0, vmax=1)
+    plt.imshow(image, cmap='gray', vmin=0, vmax=255)
     plt.axis('off') 
     plt.show()
 
-def LetterImage(letter, image_size = 128, letter_size = 64, bg_color = 0, letter_color = 1):
+def LetterImage(letter, image_size=128, letter_size=64, bg_color=0.5, letter_color=1):
+    # Convert bg_color to the appropriate 0-255 range for grayscale
+    bg_color = int(bg_color * 255) if 0 <= bg_color <= 1 else bg_color
+    letter_color = int(letter_color * 255) if 0 <= letter_color <= 1 else letter_color
+    
+    # Create an image with a gray background
     image = Image.new('L', (image_size, image_size), color=bg_color)
+    
+    # Prepare to draw the letter on the image
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype("DejaVuSans-Bold.ttf", letter_size)
-    bbox = draw.textbbox((0, 0), letter, font = font)
+    
+    # Get the bounding box of the letter to center it
+    bbox = draw.textbbox((0, 0), letter, font=font)
     letter_w, letter_h = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    
+    # Get the center coordinates for the letter
     image_w, image_h = image.size
     x = (image_w - letter_w) // 2 - bbox[0]
     y = (image_h - letter_h) // 2 - bbox[1]
-    draw.text((x, y), letter, font = font, fill=letter_color)
+    
+    # Draw the letter with the specified letter color (white)
+    draw.text((x, y), letter, font=font, fill=letter_color * 255)  # letter_color should be 1 for white
+    
+    # Convert the image to a numpy array
     return np.array(image).astype(np.float32)
 
 def AddNoise(image, letters=['A','S','D','F','G','H','J','K','L'], sigma=30, alpha=0.1):
@@ -66,15 +81,14 @@ def AddNoise(image, letters=['A','S','D','F','G','H','J','K','L'], sigma=30, alp
     freq_noise = np.random.normal(0, sigma, size=F.shape) + 1j * np.random.normal(0, sigma, size=F.shape)
     F = F * freq_noise
     letter_noise = np.real(ifft2(ifftshift(F)))
-    letter_noise = (letter_noise - letter_noise.min()) / (letter_noise.max() - letter_noise.min())
-    return alpha * image + (1 - alpha) * letter_noise
+    letter_noise = (letter_noise - letter_noise.min()) / (letter_noise.max() - letter_noise.min()) * 255
+    return alpha * image + (1 - alpha) * letter_noise 
 
 def LetterStimulus(letter, alpha=0.1, show=False):
     letter_image = AddNoise(LetterImage(letter), alpha=alpha)
     if show:
         ShowImage(letter_image)
     return letter_image
-
 
 def Norm(image):
     return 2 * image - 1
@@ -188,7 +202,7 @@ for trial in range(n_trials):
     stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
 
     # Decision
-    wait = visual.TextStim(win, text="Choose the orientation", color=1.0, height=48)
+    wait = visual.TextStim(win, text="", color=1.0, height=48)
     wait.draw()
     win.flip()
     keys = event.waitKeys(keyList=['a', 's', 'd','f','g','h','j','k','l','escape'])

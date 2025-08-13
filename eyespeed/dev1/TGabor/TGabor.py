@@ -31,14 +31,14 @@ fptr = open(fname,'w')
 # Parameters
 oris = ['left', 'right']
 soa = 10
-soa_practice = [20, 24, 28]
+soa_practice = [10, 15, 20]
 n_trials = 50
 step_size = 1
 n_practices = 1
 correct_counter = 0
 data = []
 FixationFrame = 80
-NosieFrame = 80
+NosieFrame = 8
 
 # Gabor Stimulus 
 def ShowImage(image):
@@ -46,7 +46,7 @@ def ShowImage(image):
     plt.axis('off') 
     plt.show()
 
-def GaborImage(ori, contrast = 0.5, size=512, sf = 5, noise_mean=0.0, noise_std=0.4):
+def GaborImage(ori, contrast =0.15, size=512, sf = 5, decay = 0.25):
     x = np.linspace(-1, 1, size)
     y = np.linspace(-1, 1, size)
     X, Y = np.meshgrid(x, y)
@@ -58,37 +58,24 @@ def GaborImage(ori, contrast = 0.5, size=512, sf = 5, noise_mean=0.0, noise_std=
         
     X_rot = X * np.cos(theta) + Y * np.sin(theta)
     grating = contrast * np.cos(2 * np.pi * sf * X_rot)
-
-    gauss =  np.exp(-(X**2 + Y**2) / (2 * 0.25**2))
+    gauss =  np.exp(-(X**2 + Y**2) / (2 * decay**2))
     gabor = grating * gauss
 
     gabor = np.clip(gabor, -1, 1)
-    noise = np.random.normal(loc=noise_mean, scale=noise_std, size=(size, size))
-    gabor = np.clip(gabor + noise, -1, 1)
+
     return gabor
 
 
-def GaborMask(size=128, frequency=5, sigma=0.3):
-    mask = np.zeros((size, size), dtype=np.float32)
-    x = np.linspace(-1, 1, size)
-    y = np.linspace(-1, 1, size)
-    X, Y = np.meshgrid(x, y)
-
-    # Four key orientations to eliminate orientation bias
-    orientations_deg = [0, 90, 45, 135]
-
-    for deg in 2 * orientations_deg:
-        theta = np.deg2rad(deg)
-        phase = np.random.uniform(0, 2 * np.pi)  
-        X_rot = X * np.cos(theta) + Y * np.sin(theta)
-        grating = np.cos(2 * np.pi * frequency * X_rot + phase)
-        envelope = np.exp(-(X**2 + Y**2) / (2 * sigma**2))
-        patch = grating * envelope
-        mask += patch
-
-    mask = ((mask - mask.min()) / (mask.max() - mask.min()) - 0.5) * 2
-    return mask.astype(np.float32)
-
+def GaborMask(size=512, noise_mean=0.0, noise_std= 0.4):
+    squeeze_size = size // 8
+    squeeze_noise = np.random.normal(
+        loc=noise_mean,
+        scale=noise_std,
+        size=(squeeze_size, squeeze_size)
+    )
+    noise = np.repeat(np.repeat(squeeze_noise, 8, axis=0), 8, axis=1)
+    noise = np.clip(noise, -1, 1)
+    return noise
 
 # Visual Setup
 win = visual.Window(size=(1920, 1080), color=0, units="pix", fullscr=True)
@@ -100,7 +87,7 @@ text = visual.TextStim(win, text="In this experiment, you will see a grating emb
                                         The below one is an up-to-left grating.\
                                         \n\n The grating will be briefly flashed and then immediately masked by some random patterns, your task is to identify whether the grating is up-to-left or up-to-right after it is briefly presented at the center of the screen\
                                         \n\n If you think the grating is up-to-left, press 'x'. If you think the grating is up-to-right, press 'm'.\
-                                        \n\n Press SPACE to continue", color=1.0, height=22, pos = (0, 250))
+                                        \n\n Press SPACE to continue", color=1.0, height=20, pos = (0, 250))
 text.draw()
 image = visual.ImageStim(image = np.flipud(GaborImage(ori= 'left')), win = win, size=(512, 512), pos = (0, -250), units="pix")
 image.draw()
@@ -111,7 +98,7 @@ event.waitKeys(keyList=['space'])
 # Practice trail screen
 text = visual.TextStim(win, text="We will begin with several practice trials, feedback on correctness will be provided after each trial.\
                                 \n\n If you think the grating is up-to-left, press 'x'. If you think the grating is up-to-right, press 'm'.\
-                                \n\n Press SPACE to start the practice trials. ", color=1.0, height=24)
+                                \n\n Press SPACE to start the practice trials. ", color=1.0, height=20)
 text.draw()
 win.flip()
 event.waitKeys(keyList=['space'])
@@ -129,15 +116,15 @@ for trial in range(n_practices):
     stim.image = np.flipud(GaborImage(ori = ori))
 
     # Noise
-    noise.image = np.flipud(GaborMask())
+    noise1, noise2, noise3, noise4, noise5 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(GaborMask())),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(GaborMask())),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(GaborMask())),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(GaborMask())),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(GaborMask()))
 
     # RunFrame
-    frames = [fixation, stim, noise]
-    frameDurations = [FixationFrame, practice_soa, NosieFrame] 
+    frames = [fixation, stim, noise1, noise2, noise3, noise4, noise5]
+    frameDurations = [FixationFrame, practice_soa, NosieFrame, NosieFrame, NosieFrame,NosieFrame,NosieFrame] 
     stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
 
     # Decision
-    wait = visual.TextStim(win, text="Choose the orientation", color=1.0, height=48)
+    wait = visual.TextStim(win, text="", color=1.0, height=48)
     wait.draw()
     win.flip()
     keys = event.waitKeys(keyList=['x','m'] + ['escape'])
@@ -175,7 +162,7 @@ for trial in range(n_practices):
 # --- Main Staircase Block ---
 text = visual.TextStim(win, text="Excellent! Here comes the main experiment. This time the task is more difficult, please pay attention\
                                 \n\n If you think the grating is up-to-left, press 'x'. If you think the grating is up-to-right, press 'm'.\
-                                \n\n Press SPACE to start the main experiment. ", color=1.0, height=34)
+                                \n\n Press SPACE to start the main experiment. ", color=1.0, height=20)
 text.draw()
 win.flip()
 event.waitKeys(keyList=['space'])
@@ -193,15 +180,15 @@ for trial in range(n_trials):
     stim.image = np.flipud(GaborImage(ori = ori))
 
     # Noise
-    noise.image = np.flipud(GaborMask())
+    noise1, noise2, noise3, noise4, noise5 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(GaborMask())),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(GaborMask())),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(GaborMask())),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(GaborMask())),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(GaborMask()))
 
     # RunFrame
-    frames = [fixation, stim, noise]
-    frameDurations = [FixationFrame, soa, NosieFrame] 
+    frames = [fixation, stim, noise1, noise2, noise3, noise4, noise5]
+    frameDurations = [FixationFrame, practice_soa, NosieFrame, NosieFrame, NosieFrame,NosieFrame,NosieFrame] 
     stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
 
     # Decision
-    wait = visual.TextStim(win, text="Choose the orientation", color=1.0, height=48)
+    wait = visual.TextStim(win, text="", color=1.0, height=48)
     wait.draw()
     win.flip()
     keys = event.waitKeys(keyList=['x', 'm', 'escape'])

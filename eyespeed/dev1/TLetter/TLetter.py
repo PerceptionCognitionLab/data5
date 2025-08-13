@@ -28,43 +28,59 @@ correctSound1=sound.Sound(value=600,secs=0.1)
 correctSound2=sound.Sound(value=800,secs=0.1)
 errorSound=sound.Sound(value=500,secs=0.2)
 
+
 # Parameters
 letters = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L']
-noises = ['#', '@', '$', '%', '&']
-soa = 10
-soa_practice = [10, 12, 14]
+soa = 8
+soa_practice = [8, 10, 12]
 step_size = 1
-n_trials = 50
-n_practices = 10
+n_trials = 20
+n_practices = 1
 correct_counter = 0
 data = []
 FixationFrame = 80
-NosieFrame = 3
+NoiseFrame = 8
 
-# Letter Stimulus 
-def ShowImage(image):
-    plt.imshow(image, cmap='gray', vmin=0, vmax=1)
-    plt.axis('off') 
-    plt.show()
-
-def LetterImage(letter, image_size = 128, letter_size = 64, bg_color = 0, letter_color = 1):
+def LetterImage(letter, image_size=128, letter_size=64, bg_color=0.5, letter_color=1):
+    bg_color = int(bg_color * 255) if 0 <= bg_color <= 1 else bg_color
+    letter_color = int(letter_color * 255) if 0 <= letter_color <= 1 else letter_color
+    
     image = Image.new('L', (image_size, image_size), color=bg_color)
+    
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype("DejaVuSans-Bold.ttf", letter_size)
-    bbox = draw.textbbox((0, 0), letter, font = font)
+    
+    bbox = draw.textbbox((0, 0), letter, font=font)
     letter_w, letter_h = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    
     image_w, image_h = image.size
     x = (image_w - letter_w) // 2 - bbox[0]
     y = (image_h - letter_h) // 2 - bbox[1]
-    draw.text((x, y), letter, font = font, fill=letter_color)
+    
+    draw.text((x, y), letter, font=font, fill=letter_color * 255)  # letter_color should be 1 for white
+    
     return np.array(image).astype(np.float32)
 
 
-def Norm(image):
-    return 2 * image - 1
+def Noise(letters=['A','S','D','F','G','H','J','K','L'], sigma=30):
+    letter_list = [LetterImage(letter=l) for l in letters]
+    letter_mean = np.mean(letter_list, axis=0)
+    F = fftshift(fft2(letter_mean))
+    freq_noise = np.random.normal(0, sigma, size=F.shape) + 1j * np.random.normal(0, sigma, size=F.shape)
+    F = F * freq_noise
+    letter_noise = np.real(ifft2(ifftshift(F)))
+    letter_noise = (letter_noise - letter_noise.min()) / (letter_noise.max() - letter_noise.min()) * 255
+    return letter_noise 
+
+
+def NormLetter(image):
+    return ((image - 127)/127) * 0.05
+def NormNoise(image):
+    return 2 * (image/255) - 1
+
 
 # Visual Setup
-win = visual.Window(size=(1920, 1080), color=-1, units="pix", fullscr=True)
+win = visual.Window(size=(1920, 1080), color=0, units="pix", fullscr=True)
 stim = visual.ImageStim(win, size=(512,512), units="pix")
 
 # Welcome Screen
@@ -77,9 +93,9 @@ event.waitKeys(keyList=['space'])
 text = visual.TextStim(win, text="In this experiment, you will see a letter embedded in noise. The letter will be chosen from the second row of the keyboard - [A,S,D,F,G,H,J,K,L]\
                                         The below one is a letter A.\
                                         \n\n The letter will be briefly flashed and then immediately masked by some other symbols, your task is to choose the letter you see using the second row of the keyboard.\
-                                        \n\n Press SPACE to continue", color=1.0, height=24, pos = (0, 300))
+                                        \n\n Press SPACE to continue", color=1.0, height=20, pos = (0, 300))
 text.draw()
-image = visual.ImageStim(image = np.flipud(Norm(LetterImage(letter = 'A'))), win = win, size=(512, 512), pos = (0, -200), units="pix")
+image = visual.ImageStim(image = np.flipud(NormLetter(LetterImage(letter = 'A'))), win = win, size=(512, 512), pos = (0, -200), units="pix")
 image.draw()
 win.flip()
 event.waitKeys(keyList=['space'])
@@ -87,7 +103,7 @@ event.waitKeys(keyList=['space'])
 # Practice trail screen
 text = visual.TextStim(win, text="We will begin with several practice trials, feedback on correctness will be provided after each trial.\
                                 \n\n Choose the letter using the second row of the keyboard.\
-                                \n\n Press SPACE to start the practice trials. ", color=1.0, height=24)
+                                \n\n Press SPACE to start the practice trials. ", color=1.0, height=20)
 text.draw()
 win.flip()
 event.waitKeys(keyList=['space'])
@@ -103,21 +119,19 @@ for trial in range(n_practices):
 
     # Stimulus
     letter, practice_soa = random.choice(letters), random.choice(soa_practice)
-    stim.image = np.flipud(Norm(LetterImage(letter)))
+    stim.image = np.flipud(NormLetter(LetterImage(letter)))
 
     # Noise
-    noises = random.sample(noises, 3)
-    noise0 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(LetterImage(noises[0]))))
-    noise1 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(LetterImage(noises[1]))))
-    noise2 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(LetterImage(noises[2]))))
+    noise1,noise2,noise3,noise4,noise5 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(NormNoise(Noise()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(NormNoise(Noise()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(NormNoise(Noise()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(NormNoise(Noise()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(NormNoise(Noise())))
+
 
     # RunFrame
-    frames = [fixation, stim, noise0, noise1, noise2]
-    frameDurations = [FixationFrame, practice_soa, NosieFrame, NosieFrame, NosieFrame] 
+    frames = [fixation, stim, noise1, noise2, noise3, noise4, noise5]
+    frameDurations = [FixationFrame, practice_soa, NoiseFrame, NoiseFrame, NoiseFrame, NoiseFrame, NoiseFrame] 
     stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
 
     # Decision
-    wait = visual.TextStim(win, text="Choose the letter", color=1.0, height=48)
+    wait = visual.TextStim(win, text="", color=1.0, height=48)
     wait.draw()
     win.flip()
     keys = event.waitKeys(keyList=['a', 's', 'd','f','g','h','j','k','l','escape'])
@@ -171,21 +185,18 @@ for trial in range(n_trials):
 
     # Stimulus
     letter = random.choice(letters)
-    stim.image = np.flipud(Norm(LetterImage(letter)))
+    stim.image = np.flipud(NormLetter(LetterImage(letter)))
 
     # Noise
-    noises = random.sample(noises, 3)
-    noise0 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(LetterImage(noises[0]))))
-    noise1 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(LetterImage(noises[1]))))
-    noise2 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(Norm(LetterImage(noises[2]))))
+    noise1,noise2,noise3,noise4,noise5 = visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(NormNoise(Noise()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(NormNoise(Noise()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(NormNoise(Noise()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(NormNoise(Noise()))),visual.ImageStim(win, size=(512, 512), units="pix", image = np.flipud(NormNoise(Noise())))
 
     # RunFrame
-    frames = [fixation, stim, noise0, noise1, noise2]
-    frameDurations = [FixationFrame,soa, NosieFrame, NosieFrame, NosieFrame] 
+    frames = [fixation, stim, noise1, noise2, noise3, noise4, noise5]
+    frameDurations = [FixationFrame, soa, NoiseFrame, NoiseFrame, NoiseFrame, NoiseFrame, NoiseFrame] 
     stamps = exlib.runFrames(win, frames, frameDurations, trialClock)
 
     # Decision
-    wait = visual.TextStim(win, text="Choose the letter", color=1.0, height=48)
+    wait = visual.TextStim(win, text="", color=1.0, height=48)
     wait.draw()
     win.flip()
     keys = event.waitKeys(keyList=['a', 's', 'd','f','g','h','j','k','l','escape'])
