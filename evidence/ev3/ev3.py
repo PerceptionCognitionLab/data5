@@ -19,11 +19,11 @@ sd = 25
 numDots = 30
 dotY = 0
 dotRadius = 5
-dotInterval = 0.5
-potInterval = 0.1
+dotInterval = 0.5 #seconds
+potInterval = 0.1 #seconds
 line_top = -150
 line_bottom = -200
-test = False
+test = True
 
 # elib setup
 if(not test):
@@ -146,7 +146,7 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
         dotNum = 0
 
         correct = -1 if rng.integers(0, 2) == 0 else 1
-        coordinates = np.round(np.random.normal(mu * correct, sd, 20))
+        coordinates = np.round(rng.normal(mu * correct, sd, 20))
         circ = visual.Circle(win, pos=(coordinates[dotNum], dotY),
                              fillColor=[1, 1, 1], radius=dotRadius)
 
@@ -223,16 +223,11 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                 break
 
         # trial dots loop
-        trialClock = core.Clock()
-        lastPotTime = 0
-        lastDotTime = 0
         frame_in_trial = 0
 
         while True:
             if "escape" in event.getKeys():
                 return resp, stim, summary
-
-            currentTime = trialClock.getTime()
 
             # serial
             line = None
@@ -259,19 +254,18 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                 bottom_line.lineColor = 'red'
 
             # update pot reading every potInterval seconds
-            if currentTime - lastPotTime >= potInterval:
-                resp.append([trial, round(currentTime, 2), x_offset])
-                lastPotTime = currentTime
+            if frame_in_trial % (potInterval*refreshRate) == 0:
+                resp.append([trial, frame_in_trial/refreshRate, x_offset])
 
             # update dots every dotInterval seconds
-            if currentTime - lastDotTime >= dotInterval:
+            if frame_in_trial % (dotInterval*refreshRate) == 0:
                 dotNum += 1
                 if dotNum >= len(coordinates):
                     dotNum = 0
                 circ.pos = (coordinates[dotNum], dotY)
-                stim.append([trial, round(currentTime, 2), coordinates[dotNum]])
-                if dotNum >= 3:
-                    if ((np.random.rand() < endChance) | dotNum > 9):
+                stim.append([trial, frame_in_trial/refreshRate, coordinates[dotNum]])
+                if dotNum > 3:
+                    if ((rng.random() < endChance) or dotNum > 9):
                         final_side = np.sign(x_offset)
                         # end in middle edge case
                         if final_side == 0:
@@ -355,7 +349,6 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                             win.flip()
 
                         break
-                lastDotTime = currentTime
 
             circ.draw()
             xAxis.draw()
