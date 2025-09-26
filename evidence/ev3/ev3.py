@@ -23,7 +23,10 @@ dotInterval = 0.5 #seconds
 potInterval = 0.1 #seconds
 line_top = -150
 line_bottom = -200
-test = True
+barX = 75
+barY = -150
+barWidth = 10
+test = False
 
 # elib setup
 if(not test):
@@ -58,6 +61,13 @@ mid_line = (line_top + line_bottom) / 2
 top_line = visual.Line(win, start=(0, mid_line), end=(0, mid_line), lineColor="green", lineWidth=5)
 bottom_line = visual.Line(win, start=(0, mid_line), end=(0, mid_line), lineColor="green", lineWidth=5)
 mid_line = (line_top + line_bottom) / 2
+
+top_left_bar = visual.Rect(win, pos = (-barX, barY), fillColor = 'green', width = barWidth+1, height = 0, anchor = 'bottom')
+top_right_bar = visual.Rect(win, pos = (barX, barY), fillColor = 'green', width = barWidth+1, height = 0, anchor = 'bottom')
+bottom_left_bar = visual.Rect(win, pos = (-barX,barY), fillColor = 'red', width = barWidth, height = 0, anchor = 'top')
+bottom_right_bar = visual.Rect(win, pos = (barX,barY), fillColor = 'red', width = barWidth, height = 0, anchor = 'top')
+outline_left = visual.Rect(win, pos = (-barX, barY-125), fillColor = None, lineColor = 'grey', width = barWidth+5, lineWidth = 2.5, height = 175, anchor = 'bottom')
+outline_right = visual.Rect(win, pos = (barX, barY-125), fillColor = None, lineColor = 'grey', width = barWidth+5, lineWidth = 2.5, height = 175, anchor = 'bottom')
 
 # sounds
 correctSound1 = sound.Sound(500, secs=0.25)
@@ -118,12 +128,27 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
             bottom_line.start = (x_offset, mid_line)
             bottom_line.end = (x_offset, line_bottom)
 
+            if(x_offset >= 0):
+                top_right_bar.height = x_offset/5
+                bottom_right_bar.height = x_offset/2
+                top_left_bar.height = 0
+                bottom_left_bar.height = 0
+            else:
+                top_left_bar.height = -x_offset/5
+                bottom_left_bar.height = -x_offset/2
+                top_right_bar.height = 0
+                bottom_right_bar.height = 0
+
             if abs(x_offset) <= inside_threshold:
                 top_line.lineColor = 'green'
                 bottom_line.lineColor = 'green'
+                outline_right.lineColor = 'green'
+                outline_left.lineColor = 'green'
             else:
                 top_line.lineColor = 'red'
                 bottom_line.lineColor = 'red'
+                outline_right.lineColor = 'red'
+                outline_left.lineColor = 'red'
 
             # end inside threshold edge case
             if not moved_outside:
@@ -138,6 +163,12 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
 
         top_line.draw()
         bottom_line.draw()
+        #top_left_bar.draw()
+        #top_right_bar.draw()
+        #bottom_left_bar.draw()
+        #bottom_right_bar.draw()
+        #outline_left.draw()
+        #outline_right.draw()
         win.flip()
 
     trial = 0
@@ -180,13 +211,28 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                 bottom_line.start = (x_offset, mid_line)
                 bottom_line.end = (x_offset, line_bottom)
 
+                if(x_offset >= 0):
+                    top_right_bar.height = x_offset/5
+                    bottom_right_bar.height = x_offset/2
+                    top_left_bar.height = 0
+                    bottom_left_bar.height = 0
+                else:
+                    top_left_bar.height = -x_offset/5
+                    bottom_left_bar.height = -x_offset/2
+                    top_right_bar.height = 0
+                    bottom_right_bar.height = 0
+
                 #feedback
                 if abs(x_offset) <= inside_threshold:
                     top_line.lineColor = 'green'
                     bottom_line.lineColor = 'green'
+                    outline_right.lineColor = 'green'
+                    outline_left.lineColor = 'green'
                 else:
                     top_line.lineColor = 'red'
                     bottom_line.lineColor = 'red'
+                    outline_right.lineColor = 'red'
+                    outline_left.lineCclor = 'red'
 
             if last_feedback_text:
                 feedback_stim = visual.TextStim(win, text=last_feedback_text, height=30, color=last_feedback_color, pos=(0, 110))
@@ -208,6 +254,12 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
             ready_text.draw()
             top_line.draw()
             bottom_line.draw()
+            #top_left_bar.draw()
+            #top_right_bar.draw()
+            #bottom_left_bar.draw()
+            #bottom_right_bar.draw()
+            #outline_left.draw()
+            #outline_right.draw()
             win.flip()
 
             # check if line is centered
@@ -224,6 +276,8 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
 
         # trial dots loop
         frame_in_trial = 0
+        outline_right.lineColor = 'grey'
+        outline_left.lineColor = 'grey'
 
         while True:
             if "escape" in event.getKeys():
@@ -249,6 +303,17 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                 top_line.end = (x_offset, mid_line + abs(x_offset)/5)
                 bottom_line.start = (x_offset, mid_line)
                 bottom_line.end = (x_offset, mid_line - abs(x_offset)/2)
+
+                if(x_offset >= 0):
+                    top_right_bar.height = x_offset/5
+                    bottom_right_bar.height = x_offset/2
+                    top_left_bar.height = 0
+                    bottom_left_bar.height = 0
+                else:
+                    top_left_bar.height = -x_offset/5
+                    bottom_left_bar.height = -x_offset/2
+                    top_right_bar.height = 0
+                    bottom_right_bar.height = 0
 
                 top_line.lineColor = 'green'
                 bottom_line.lineColor = 'red'
@@ -312,12 +377,27 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                                 bottom_line.start = (x_offset, mid_line)
                                 bottom_line.end = (x_offset, line_bottom)
 
+                                if(x_offset >= 0):
+                                    top_right_bar.height = x_offset/5
+                                    bottom_right_bar.height = x_offset/2
+                                    top_left_bar.height = 0
+                                    bottom_left_bar.height = 0
+                                else:
+                                    top_left_bar.height = -x_offset/5
+                                    bottom_left_bar.height = -x_offset/2
+                                    top_right_bar.height = 0
+                                    bottom_right_bar.height = 0
+
                                 if abs(x_offset) <= inside_threshold:
                                     top_line.lineColor = 'green'
                                     bottom_line.lineColor = 'green'
+                                    outline_right.lineColor = 'green'
+                                    outline_left.lineColor = 'green'
                                 else:
                                     top_line.lineColor = 'red'
                                     bottom_line.lineColor = 'red'
+                                    outline_right.lineColor = 'red'
+                                    outline_left.lineColor = 'red'
 
                                 if not moved_outside:
                                     if abs(x_offset) > inside_threshold:
@@ -346,6 +426,12 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
 
                             top_line.draw()
                             bottom_line.draw()
+                            #top_left_bar.draw()
+                            #top_right_bar.draw()
+                            #bottom_left_bar.draw()
+                            #bottom_right_bar.draw()
+                            #outline_left.draw()
+                            #outline_right.draw()
                             win.flip()
 
                         break
@@ -353,8 +439,14 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
             circ.draw()
             xAxis.draw()
             yAxis.draw()
-            top_line.draw()
-            bottom_line.draw()
+            #top_line.draw()
+            #bottom_line.draw()
+            top_left_bar.draw()
+            top_right_bar.draw()
+            bottom_left_bar.draw()
+            bottom_right_bar.draw()
+            outline_left.draw()
+            outline_right.draw()
             win.flip()
 
             frame_in_trial += 1
