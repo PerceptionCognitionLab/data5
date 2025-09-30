@@ -39,7 +39,7 @@ gPar = SimpleNamespace(**gParDict)
 lParDict={"isCongruent":0,
           "target":0,
           "posTarg":0,          
-          "dur":20}
+          "dur":15}
 lPar = SimpleNamespace(**lParDict)
 
 def createStim():
@@ -68,7 +68,7 @@ def getResp():
 
 def runTrial(lPar):
     frames=[]
-    frameDurations=[100,1,lPar.dur,3,5,5]
+    frameDurations=[50,2,lPar.dur,6,6,6]
 
     lPar.target = int(rng.integers(0,9,1))
     lPar.posTarg = int(rng.integers(0,2,1))  #0=left, 1=right
@@ -82,7 +82,7 @@ def runTrial(lPar):
     box[posCue].lineColor=[1,1,1]
     box[posCue].lineWidth=10
     frames.append(visual.BufferImageStim(win,stim=box+[fixX]))
-    box[posCue].lineColor=[-1,-1,-1]
+    box[posCue].lineColor=[0,0,0]
     box[posCue].lineWidth=2
     frames.append(cXLR)
     frames.append(visual.BufferImageStim(win,stim=(fixX,fixL,fixR,targ)))
@@ -98,8 +98,8 @@ def runTrial(lPar):
 
     return([resp,rt])
 
-congruentDur =[10]
-incongruentDur=[10]
+congruentDur =[20]
+incongruentDur=[30]
 
 def runBlock(blk):
     blockStart(blk)
@@ -118,6 +118,7 @@ def runBlock(blk):
     for trl in range(5):
         [resp,rt]=runTrial(lPar)
         print(pid,sid,blk,trl,lPar.isCongruent,lPar.target,lPar.dur,resp,rt,sep=", ", file=fptr)
+        print(pid,sid,blk,trl,lPar.isCongruent,lPar.target,lPar.dur,resp,rt)
 
         if (resp==lPar.target)&(numCor==0):
             numCor+=1
@@ -224,9 +225,9 @@ def trainFR():
         el.runFrames(win, frame2, frameTimes2, trialClock)
         fixiateFrame(frame2)
 
-
-
-    
+###################
+###################
+###################    
 
 
 

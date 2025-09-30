@@ -26,10 +26,11 @@ line_bottom = -200
 barX = 75
 barY = -150
 barWidth = 10
-test = False
+alpha = 1 #loss/win
+use_elib = False
 
 # elib setup
-if(not test):
+if(use_elib):
     elib.setRefreshRate(refreshRate)
     expName="ev3"
     dbConf=elib.data5
@@ -66,8 +67,24 @@ top_left_bar = visual.Rect(win, pos = (-barX, barY), fillColor = 'green', width 
 top_right_bar = visual.Rect(win, pos = (barX, barY), fillColor = 'green', width = barWidth+1, height = 0, anchor = 'bottom')
 bottom_left_bar = visual.Rect(win, pos = (-barX,barY), fillColor = 'red', width = barWidth, height = 0, anchor = 'top')
 bottom_right_bar = visual.Rect(win, pos = (barX,barY), fillColor = 'red', width = barWidth, height = 0, anchor = 'top')
-outline_left = visual.Rect(win, pos = (-barX, barY-125), fillColor = None, lineColor = 'grey', width = barWidth+5, lineWidth = 2.5, height = 175, anchor = 'bottom')
-outline_right = visual.Rect(win, pos = (barX, barY-125), fillColor = None, lineColor = 'grey', width = barWidth+5, lineWidth = 2.5, height = 175, anchor = 'bottom')
+
+# outline def
+visual_limit = 250
+bottom_max = visual_limit / 2
+top_max = bottom_max * alpha
+total_outline_height = bottom_max + top_max
+outline_center_y = barY + (top_max - bottom_max) / 2
+
+outline_left = visual.Rect(
+    win, pos=(-barX, outline_center_y), fillColor=None, lineColor='grey',
+    width=barWidth + 5, lineWidth=2.5, height=total_outline_height, anchor='center'
+)
+
+outline_right = visual.Rect(
+    win, pos=(barX, outline_center_y), fillColor=None, lineColor='grey',
+    width=barWidth + 5, lineWidth=2.5, height=total_outline_height, anchor='center'
+)
+
 
 # sounds
 correctSound1 = sound.Sound(500, secs=0.25)
@@ -90,6 +107,19 @@ def playIncorrectSound():
 last_feedback_text = None
 last_feedback_color = 'white'
 total_score = 0
+
+def showBlockStartScreen(text):
+    message = visual.TextStim(win, text=text, height=30, color='white', pos=(0, 0))
+    instruction = visual.TextStim(win, text="Press any key to start", height=20, color='white', pos=(0, -40))
+    while True:
+        message.draw()
+        instruction.draw()
+        win.flip()
+        keys = event.getKeys()
+        if keys:
+            if 'escape' in keys:
+                core.quit()
+            break
 
 def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
     global last_feedback_text, last_feedback_color, total_score
@@ -129,12 +159,12 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
             bottom_line.end = (x_offset, line_bottom)
 
             if(x_offset >= 0):
-                top_right_bar.height = x_offset/5
+                top_right_bar.height = x_offset/2*alpha
                 bottom_right_bar.height = x_offset/2
                 top_left_bar.height = 0
                 bottom_left_bar.height = 0
             else:
-                top_left_bar.height = -x_offset/5
+                top_left_bar.height = -x_offset/2*alpha
                 bottom_left_bar.height = -x_offset/2
                 top_right_bar.height = 0
                 bottom_right_bar.height = 0
@@ -212,12 +242,12 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                 bottom_line.end = (x_offset, line_bottom)
 
                 if(x_offset >= 0):
-                    top_right_bar.height = x_offset/5
+                    top_right_bar.height = x_offset/2*alpha
                     bottom_right_bar.height = x_offset/2
                     top_left_bar.height = 0
                     bottom_left_bar.height = 0
                 else:
-                    top_left_bar.height = -x_offset/5
+                    top_left_bar.height = -x_offset/2*alpha
                     bottom_left_bar.height = -x_offset/2
                     top_right_bar.height = 0
                     bottom_right_bar.height = 0
@@ -305,12 +335,12 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                 bottom_line.end = (x_offset, mid_line - abs(x_offset)/2)
 
                 if(x_offset >= 0):
-                    top_right_bar.height = x_offset/5
+                    top_right_bar.height = x_offset/2*alpha
                     bottom_right_bar.height = x_offset/2
                     top_left_bar.height = 0
                     bottom_left_bar.height = 0
                 else:
-                    top_left_bar.height = -x_offset/5
+                    top_left_bar.height = -x_offset/2*alpha
                     bottom_left_bar.height = -x_offset/2
                     top_right_bar.height = 0
                     bottom_right_bar.height = 0
@@ -378,12 +408,12 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                                 bottom_line.end = (x_offset, line_bottom)
 
                                 if(x_offset >= 0):
-                                    top_right_bar.height = x_offset/5
+                                    top_right_bar.height = x_offset/2*alpha
                                     bottom_right_bar.height = x_offset/2
                                     top_left_bar.height = 0
                                     bottom_left_bar.height = 0
                                 else:
-                                    top_left_bar.height = -x_offset/5
+                                    top_left_bar.height = -x_offset/2*alpha
                                     bottom_left_bar.height = -x_offset/2
                                     top_right_bar.height = 0
                                     bottom_right_bar.height = 0
@@ -454,11 +484,14 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
     return resp, stim, summary
 
 # main
-if(test):
-    numTrials = 10
-else:
-    numTrials = 50
 endChance = 0.15
+numTrials = 10
+total_score = 0
+showBlockStartScreen("Tutorial Block")
+resp, stim, summary = displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials)
+numTrials = 50
+total_score = 0
+showBlockStartScreen("Main Block")
 resp, stim, summary = displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials)
 
 # data writing
@@ -488,7 +521,7 @@ while True:
 
 hz=round(win.getActualFrameRate())
 [resX,resY]=win.size
-if(not test):
+if(use_elib):
     elib.stopExp(sid,hz,resX,resY,seed,dbConf)
 win.close()
 ser.close()
