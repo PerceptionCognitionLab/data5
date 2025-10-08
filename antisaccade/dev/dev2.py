@@ -39,7 +39,7 @@ gPar = SimpleNamespace(**gParDict)
 lParDict={"isCongruent":0,
           "target":0,
           "posTarg":0,          
-          "dur":15}
+          "dur":0}
 lPar = SimpleNamespace(**lParDict)
 
 def createStim():
@@ -68,7 +68,7 @@ def getResp():
 
 def runTrial(lPar):
     frames=[]
-    frameDurations=[50,2,lPar.dur,6,6,6]
+    frameDurations=[50,2,lPar.dur,10,14,14]
 
     lPar.target = int(rng.integers(0,9,1))
     lPar.posTarg = int(rng.integers(0,2,1))  #0=left, 1=right
@@ -98,8 +98,8 @@ def runTrial(lPar):
 
     return([resp,rt])
 
-congruentDur =[20]
-incongruentDur=[30]
+congruentDur =[40]
+incongruentDur=[60]
 
 def runBlock(blk):
     blockStart(blk)
@@ -115,7 +115,7 @@ def runBlock(blk):
     
     numCor=0
 
-    for trl in range(5):
+    for trl in range(20):
         [resp,rt]=runTrial(lPar)
         print(pid,sid,blk,trl,lPar.isCongruent,lPar.target,lPar.dur,resp,rt,sep=", ", file=fptr)
         print(pid,sid,blk,trl,lPar.isCongruent,lPar.target,lPar.dur,resp,rt)
@@ -137,6 +137,7 @@ def runBlock(blk):
         incongruentDur.append(lPar.dur)
     
     print(congruentDur)
+    
     print(incongruentDur)
 
 

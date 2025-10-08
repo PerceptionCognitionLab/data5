@@ -25,14 +25,14 @@ barX = 75
 barY = -150
 barWidth = 10
 alpha = 1 #loss/win
-use_elib = False
+use_elib = True
 
 # elib setup
 if(use_elib):
     elib.setRefreshRate(refreshRate)
     expName="ev3"
     dbConf=elib.data5
-    [pid,sid,fname]=elib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)    
+    [pid,sid,fname]=elib.startExp(expName,dbConf,pool=3,lockBox=True,refreshRate=refreshRate)    
     froot=fname[:-4]
     resp_file=open(froot+".resp", "w")
     stim_file=open(froot+".stim", "w")
