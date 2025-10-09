@@ -13,15 +13,25 @@ from types import SimpleNamespace
 pid=1
 sid=1
 fname="test"
+
+#expName="dev2"
+refreshRate=165
+seed= -1
+
+#dbConf=el.beta
+#el.setRefreshRate(refreshRate)
+#[pid,sid,fname]=el.startExp(expName,dbConf,pool=1,lockBox=False,refreshRate=refreshRate)
+
 fptr=open(fname,"w")
 rng = random.default_rng()
 
 scale=400
 
 trialClock=core.Clock()
-correctSound1=sound.Sound(value=500,secs=.1)
-correctSound2=sound.Sound(value=1000,secs=.2)
-errorSound=sound.Sound(value=300,secs=.5)
+correctSound1 = sound.Sound(500, secs=0.25)
+correctSound2 = sound.Sound(1000, secs=0.25)
+errorSound1 = sound.Sound(500, secs=0.5)
+errorSound2 = sound.Sound(375, secs=0.5)
 
 win=visual.Window(units= "pix", 
                      allowGUI=False,
@@ -33,7 +43,8 @@ gParDict={"let":['A','S','D','F','G','H','J','K','L'],
       "mask":['@','#'],
       "abortKey":'9',
       "keyList":['a','s','d','f','g','h','j','k','l','9'],
-      "pos":[(-400,0),(400,0)]}
+      "pos":[(-400,0),(400,0)],
+      "numTrials":10}
 gPar = SimpleNamespace(**gParDict)
 
 lParDict={"isCongruent":0,
@@ -68,7 +79,7 @@ def getResp():
 
 def runTrial(lPar):
     frames=[]
-    frameDurations=[50,2,lPar.dur,10,14,14]
+    frameDurations=[50,2,lPar.dur,16,16,16]
 
     lPar.target = int(rng.integers(0,9,1))
     lPar.posTarg = int(rng.integers(0,2,1))  #0=left, 1=right
@@ -94,12 +105,13 @@ def runTrial(lPar):
         correctSound1.play()
         correctSound2.play()
     else:
-        errorSound.play()
+        errorSound1.play()
+        errorSound2.play()
 
     return([resp,rt])
 
-congruentDur =[40]
-incongruentDur=[60]
+congruentDur =[50]
+incongruentDur=[80]
 
 def runBlock(blk):
     blockStart(blk)
@@ -115,20 +127,27 @@ def runBlock(blk):
     
     numCor=0
 
-    for trl in range(20):
+    for trl in range(gPar.numTrials):
         [resp,rt]=runTrial(lPar)
         print(pid,sid,blk,trl,lPar.isCongruent,lPar.target,lPar.dur,resp,rt,sep=", ", file=fptr)
         print(pid,sid,blk,trl,lPar.isCongruent,lPar.target,lPar.dur,resp,rt)
 
+
         if (resp==lPar.target)&(numCor==0):
             numCor+=1
         elif (resp==lPar.target)&(numCor==1):
-            lPar.dur = lPar.dur-1
+            if (blk==0) | (blk==1):
+                lPar.dur = lPar.dur-5                   #staircase faster for first two blocks
+            else:
+                lPar.dur = lPar.dur-2
             if lPar.dur<0:
                 lPar.dur=0
             numCor=0
         else:
-            lPar.dur = lPar.dur+1
+            if (blk==0) | (blk==1):
+                lPar.dur = lPar.dur+5
+            else:
+                lPar.dur = lPar.dur+2
             numCor=0
 
     if lPar.isCongruent==1:
@@ -137,7 +156,7 @@ def runBlock(blk):
         incongruentDur.append(lPar.dur)
     
     print(congruentDur)
-    
+
     print(incongruentDur)
 
 
@@ -263,7 +282,11 @@ blocks=[0,1,2,3,4,5]
 for i in range(int(len(blocks))): 
     blk=blocks[i]
     runBlock(blk)
+
+#hz=round(win.getActualFrameRate())
+#[resX,resY]=win.size
 win.close()
 fptr.close
+#el.stopExp(sid,hz,resX,resY,seed,dbConf)
 core.quit()
 

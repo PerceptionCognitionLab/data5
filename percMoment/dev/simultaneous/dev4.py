@@ -9,6 +9,7 @@ import os
 import time   
 sys.path.insert(0, '/home/exp/specl-exp/lib/data5/')
 import expLib51 as elib
+import support
 
 
 # Housekeeping
@@ -30,6 +31,17 @@ errorSound=sound.Sound(value=300,secs=.5)
 seed = random.randrange(1e6)
 random.seed(seed)
 
+fix = visual.TextStim(win, "+")  # fixation cross
+gPar0={
+	'spacing' : 48,
+	'sizeIndicator' : [0,1,1,1,0],
+	'increment': [1,-1]
+}  
+gPar=support.initGlobals(gPar0)  # adds x, y, validTarget, N to structure
+fix = visual.TextStim(win, "+")  # fixation cross
+blank = visual.TextStim(win, "")  # blank window
+int_trial = 3
+
 
 
 def runTrial(dur, stimCode):
@@ -40,7 +52,8 @@ def runTrial(dur, stimCode):
     stim.append(both)
     blank = visual.TextStim(win, '', pos = (0.0,0.0))
 
-    frames = [blank, stim[stimCode], blank,stim[(1-stimCode)], blank]
+    #frames = [blank, stim[stimCode], blank,stim[(1-stimCode)], blank]
+    frames = [blank, stim[stimCode], blank, both, blank]
     frameTimes = [100,1,dur,1,1]
     elib.runFrames (win, frames, frameTimes, trialClock)
     keys = event.waitKeys(timeStamped=trialClock, 
@@ -101,8 +114,68 @@ def runSimult(trialNum):
                 dur=8
             counter=0
 
+def runInteg(trialNum):
+    counter = 0
+    soa = 6
+    for i in range(trialNum):
+        trialNum = i
+        resp=integrationTrial(soa,gPar,prac=False)
+        info=[trialNum, soa, resp[2]]
+        print(*info, sep=' ', file=fptr)
+        # staircase
+        if (info[2]==True)&(counter==0):
+            counter+=1
+        elif (info[2]==True)&(counter==1):
+            soa = soa+2
+            if soa>8:
+                soa=8
+            counter=0
+            
+        else:
+            soa = soa-1
+            if soa<0:
+                soa=0
+            counter=0
+        
 
-runSimult(15)
+#############
+
+def integrationTrial(soa,gPar,prac=False):
+	[x,y]=[gPar['x'],gPar['y']]
+	target= random.choice(gPar['validTarget'])
+	[aDots, bDots]=support.intDotIndex(gPar,target)
+	dots=[]
+	for i in range(gPar['N']):
+		dots.append(visual.Circle(win, pos=(x[i],y[i]), fillColor=[0, -1, -1], radius=2.5))
+	allRed=visual.BufferImageStim(win,stim=dots)
+	adots=[]
+	alldots=[]
+	for i in range(len(aDots)):
+		adots.append(visual.Circle(win, pos=(x[aDots[i]],y[aDots[i]]), fillColor=[1, 1, 1], radius=5))
+		alldots.append(visual.Circle(win, pos=(x[aDots[i]],y[aDots[i]]), fillColor=[1, 1, 1], radius=5))
+	a=visual.BufferImageStim(win,stim=adots)
+	bdots=[]
+	for i in range(len(bDots)):
+		bdots.append(visual.Circle(win, pos=(x[bDots[i]],y[bDots[i]]), fillColor=[1, 1, 1], radius=5))
+		alldots.append(visual.Circle(win, pos=(x[bDots[i]],y[bDots[i]]), fillColor=[1, 1, 1], radius=5))
+	b=visual.BufferImageStim(win,stim=bdots)
+	frame = [fix, blank, a, blank, b, blank, allRed]
+	frameDurations = [120, 60, 5, soa, 5, 60, 1]
+	if prac:
+			all=visual.BufferImageStim(win,stim=alldots)
+			frame = [fix,blank,all,blank,blank,blank,allRed]
+			frameDurations=[120,60,120,1,1,60,1]
+	stamps=elib.runFrames(win,frame,frameDurations,trialClock)
+	critTime=elib.actualFrameDurations(frameDurations,stamps)[3]
+	critPass=(np.absolute(soa/refreshRate-critTime)<.001)
+	resp=support.mouseResponse(mouse,win,gPar,frame[6])
+	correct=target==resp
+	support.feedback(correct)
+	return([target,resp,correct,np.round(critTime,4),critPass])
+    
+
+runInteg(10)
+runSimult(10)
 
 fptr.close()
 win.close()

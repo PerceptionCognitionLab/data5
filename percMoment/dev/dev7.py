@@ -118,6 +118,7 @@ def block(blk,task,trials,soa,gPar):
 		
 
 gPar=support.initGlobals(gPar0)  # adds x, y, validTarget, N to structure
+print(gPar)
 
 
 support.instruct(win,"Welcome")
