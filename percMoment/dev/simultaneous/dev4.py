@@ -43,11 +43,16 @@ blank = visual.TextStim(win, "")  # blank window
 int_trial = 3
 
 
+#############
+# simultaneous task trial
+#############
 
 def runTrial(dur, stimCode):
     stim=[]
-    stim.append(visual.TextStim(win, '+', pos = (-48,0.0)))
-    stim.append(visual.TextStim(win, '+', pos = (48,0.0)))
+    stim.append(visual.Circle(win, pos=(-96,0.0), fillColor=[1, 1, 1], radius=4))
+    stim.append(visual.Circle(win, pos=(96,0.0), fillColor=[1, 1, 1], radius=4))
+    #stim.append(visual.TextStim(win, '+', pos = (-48,0.0)))
+    #stim.append(visual.TextStim(win, '+', pos = (48,0.0)))
     both=visual.BufferImageStim(win,stim=stim)
     stim.append(both)
     blank = visual.TextStim(win, '', pos = (0.0,0.0))
@@ -64,29 +69,47 @@ def runTrial(dur, stimCode):
     return(resp)
     # resp "1/m" means same and "0/x" is different
 
+#############
+# fusion task trial
+#############
 
-
-def runSim(trialNum):
-    for i in range(trialNum):
-        trialNum = i
-        stim = random.choice([0,1,2])
-        dur = random.choice([1,2,4,6])
-        resp=runTrial(dur,stim)
-        # staircase?
-        info=[trialNum, dur, stim, resp]
-        if info[2]==2:
-            info[2] = 1
-        else:
-            info[2] = 0
-        print(*info, sep=' ', file=fptr)
-
-# runSim(15)
+def integrationTrial(soa,gPar,prac=False):
+	[x,y]=[gPar['x'],gPar['y']]
+	target= random.choice(gPar['validTarget'])
+	[aDots, bDots]=support.intDotIndex(gPar,target)
+	dots=[]
+	for i in range(gPar['N']):
+		dots.append(visual.Circle(win, pos=(x[i],y[i]), fillColor=[0, -1, -1], radius=2.5))
+	allRed=visual.BufferImageStim(win,stim=dots)
+	adots=[]
+	alldots=[]
+	for i in range(len(aDots)):
+		adots.append(visual.Circle(win, pos=(x[aDots[i]],y[aDots[i]]), fillColor=[1, 1, 1], radius=5))
+		alldots.append(visual.Circle(win, pos=(x[aDots[i]],y[aDots[i]]), fillColor=[1, 1, 1], radius=5))
+	a=visual.BufferImageStim(win,stim=adots)
+	bdots=[]
+	for i in range(len(bDots)):
+		bdots.append(visual.Circle(win, pos=(x[bDots[i]],y[bDots[i]]), fillColor=[1, 1, 1], radius=5))
+		alldots.append(visual.Circle(win, pos=(x[bDots[i]],y[bDots[i]]), fillColor=[1, 1, 1], radius=5))
+	b=visual.BufferImageStim(win,stim=bdots)
+	frame = [fix, blank, a, blank, b, blank, allRed]
+	frameDurations = [120, 60, 5, soa, 5, 60, 1]
+	if prac:
+			all=visual.BufferImageStim(win,stim=alldots)
+			frame = [fix,blank,all,blank,blank,blank,allRed]
+			frameDurations=[120,60,120,1,1,60,1]
+	stamps=elib.runFrames(win,frame,frameDurations,trialClock)
+	critTime=elib.actualFrameDurations(frameDurations,stamps)[3]
+	critPass=(np.absolute(soa/refreshRate-critTime)<.001)
+	resp=support.mouseResponse(mouse,win,gPar,frame[6])
+	correct=target==resp
+	support.feedback(correct)
+	return([target,resp,correct,np.round(critTime,4),critPass])
 
 
 #############
 # staircase
 #############
-# 2 up 1 down
 def runSimult(trialNum):
     counter = 0
     dur = 6
@@ -103,7 +126,9 @@ def runSimult(trialNum):
         # staircase
         if (info[2]==info[3])&(counter==0):
             counter+=1
+            support.feedback("correct")
         elif (info[2]==info[3])&(counter==1):
+            support.feedback("correct")
             dur = dur-2
             if dur<0:
                 dur=0
@@ -140,42 +165,15 @@ def runInteg(trialNum):
 
 #############
 
-def integrationTrial(soa,gPar,prac=False):
-	[x,y]=[gPar['x'],gPar['y']]
-	target= random.choice(gPar['validTarget'])
-	[aDots, bDots]=support.intDotIndex(gPar,target)
-	dots=[]
-	for i in range(gPar['N']):
-		dots.append(visual.Circle(win, pos=(x[i],y[i]), fillColor=[0, -1, -1], radius=2.5))
-	allRed=visual.BufferImageStim(win,stim=dots)
-	adots=[]
-	alldots=[]
-	for i in range(len(aDots)):
-		adots.append(visual.Circle(win, pos=(x[aDots[i]],y[aDots[i]]), fillColor=[1, 1, 1], radius=5))
-		alldots.append(visual.Circle(win, pos=(x[aDots[i]],y[aDots[i]]), fillColor=[1, 1, 1], radius=5))
-	a=visual.BufferImageStim(win,stim=adots)
-	bdots=[]
-	for i in range(len(bDots)):
-		bdots.append(visual.Circle(win, pos=(x[bDots[i]],y[bDots[i]]), fillColor=[1, 1, 1], radius=5))
-		alldots.append(visual.Circle(win, pos=(x[bDots[i]],y[bDots[i]]), fillColor=[1, 1, 1], radius=5))
-	b=visual.BufferImageStim(win,stim=bdots)
-	frame = [fix, blank, a, blank, b, blank, allRed]
-	frameDurations = [120, 60, 5, soa, 5, 60, 1]
-	if prac:
-			all=visual.BufferImageStim(win,stim=alldots)
-			frame = [fix,blank,all,blank,blank,blank,allRed]
-			frameDurations=[120,60,120,1,1,60,1]
-	stamps=elib.runFrames(win,frame,frameDurations,trialClock)
-	critTime=elib.actualFrameDurations(frameDurations,stamps)[3]
-	critPass=(np.absolute(soa/refreshRate-critTime)<.001)
-	resp=support.mouseResponse(mouse,win,gPar,frame[6])
-	correct=target==resp
-	support.feedback(correct)
-	return([target,resp,correct,np.round(critTime,4),critPass])
-    
 
-runInteg(10)
-runSimult(10)
+#runInteg(10)
+#runSimult(10)
+support.instruct(win,"Welcome")
+support.instruct(win,"Integration Task")
+runInteg(0)
+support.instruct(win,"Simultaneous Task")
+runSimult(2)
+
 
 fptr.close()
 win.close()
