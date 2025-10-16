@@ -51,15 +51,20 @@ def runTrial(dur, stimCode):
     stim=[]
     stim.append(visual.Circle(win, pos=(-96,0.0), fillColor=[1, 1, 1], radius=4))
     stim.append(visual.Circle(win, pos=(96,0.0), fillColor=[1, 1, 1], radius=4))
-    #stim.append(visual.TextStim(win, '+', pos = (-48,0.0)))
-    #stim.append(visual.TextStim(win, '+', pos = (48,0.0)))
     both=visual.BufferImageStim(win,stim=stim)
     stim.append(both)
     blank = visual.TextStim(win, '', pos = (0.0,0.0))
+    #stim.append(visual.TextStim(win, '+', pos = (-48,0.0)))
+    #stim.append(visual.TextStim(win, '+', pos = (48,0.0)))
+    #make response boxes ... use TextStim instead?
+    option = []
+    option.append(visual.TextBox(win, text = "Simultaneous", font_size=18, font_color=[-1,-1,1], color_space='rgb', size=(1.8,.1), pos=(-96,0.0)))
+    option.append(visual.TextBox(win, text = "Non-Simultaneous", font_size=18, font_color=[-1,-1,1], color_space='rgb', size=(1.8,.1), pos=(96,0.0)))
+    options=visual.BufferImageStim(win,stim=option)
 
     #frames = [blank, stim[stimCode], blank,stim[(1-stimCode)], blank]
-    frames = [blank, stim[stimCode], blank, both, blank]
-    frameTimes = [100,1,dur,1,1]
+    frames = [blank, stim[stimCode], blank, both, blank, options]
+    frameTimes = [100,1,dur,1,1,20]
     elib.runFrames (win, frames, frameTimes, trialClock)
     keys = event.waitKeys(timeStamped=trialClock, 
                           keyList=['x', 'm', '9'])
@@ -145,6 +150,7 @@ def runInteg(trialNum):
     for i in range(trialNum):
         trialNum = i
         resp=integrationTrial(soa,gPar,prac=False)
+        print("target,resp,correct",resp[0],resp[1],resp[2])
         info=[trialNum, soa, resp[2]]
         print(*info, sep=' ', file=fptr)
         # staircase
