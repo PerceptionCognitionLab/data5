@@ -61,11 +61,14 @@ def runTrial(dur, stimCode):
     option.append(visual.TextBox(win, text = "Simultaneous", font_size=18, font_color=[-1,-1,1], color_space='rgb', size=(1.8,.1), pos=(-96,0.0)))
     option.append(visual.TextBox(win, text = "Non-Simultaneous", font_size=18, font_color=[-1,-1,1], color_space='rgb', size=(1.8,.1), pos=(96,0.0)))
     options=visual.BufferImageStim(win,stim=option)
+    easy=visual.TextStim(win,"help")
 
     #frames = [blank, stim[stimCode], blank,stim[(1-stimCode)], blank]
-    frames = [blank, stim[stimCode], blank, both, blank, options]
-    frameTimes = [100,1,dur,1,1,20]
-    elib.runFrames (win, frames, frameTimes, trialClock)
+    frames = [blank,easy]
+    frameTimes = [100,100]
+    stamps=elib.runFrames(win, frames, frameTimes, trialClock)
+    event.waitKeys()
+    exit(1)
     keys = event.waitKeys(timeStamped=trialClock, 
                           keyList=['x', 'm', '9'])
     resp=1
@@ -91,12 +94,14 @@ def integrationTrial(soa,gPar,prac=False):
 	for i in range(len(aDots)):
 		adots.append(visual.Circle(win, pos=(x[aDots[i]],y[aDots[i]]), fillColor=[1, 1, 1], radius=5))
 		alldots.append(visual.Circle(win, pos=(x[aDots[i]],y[aDots[i]]), fillColor=[1, 1, 1], radius=5))
+
 	a=visual.BufferImageStim(win,stim=adots)
-	bdots=[]
-	for i in range(len(bDots)):
+    bdots=[]
+    for i in range(len(bDots)):
 		bdots.append(visual.Circle(win, pos=(x[bDots[i]],y[bDots[i]]), fillColor=[1, 1, 1], radius=5))
 		alldots.append(visual.Circle(win, pos=(x[bDots[i]],y[bDots[i]]), fillColor=[1, 1, 1], radius=5))
 	b=visual.BufferImageStim(win,stim=bdots)
+    
 	frame = [fix, blank, a, blank, b, blank, allRed]
 	frameDurations = [120, 60, 5, soa, 5, 60, 1]
 	if prac:
