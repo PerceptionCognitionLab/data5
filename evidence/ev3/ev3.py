@@ -25,7 +25,7 @@ barX = 75
 barY = -150
 barWidth = 10
 alpha = 1 #loss/win
-use_elib = False
+use_elib = True
 
 # elib setup
 if(use_elib):

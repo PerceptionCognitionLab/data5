@@ -161,90 +161,63 @@ def runBlock(blk):
 
 
 #############
-# training
+#practice
 #############
 
 def fixiateFrame(frame):
     frame[-1].draw()
     win.flip() 
 
+def cuePractice():
+    fixX,fixL,fixR,cXLR,box,targ,mask1,mask2=createStim()
+    frame = []
+    frameTimes=[1,3]
+    box[0].lineColor = [1,1,1]
+    box[0].lineWidth=10
+    cue = visual.BufferImageStim(win, stim=box + [fixX])
+    box[0].lineColor = [0,0,0]
+    box[0].lineWidth = 2
+    frame.append(cue)
+    frame.append(visual.BufferImageStim(win,stim=[fixX,fixL,fixR]))
+    el.runFrames(win, frame, frameTimes, trialClock)
+    fixiateFrame(frame)
+
 def trainFR():
     fixX,fixL,fixR,cXLR,box,targ,mask1,mask2=createStim()
 
-    # Init
+    #start practice
     frame=[]
     frameTimes=[1]
-    txt1s1= visual.TextStim(win,"Practice 1:\nClick through the experiment." \
+    startP= visual.TextStim(win,"Let's practice walking through the expreiment" \
                             "\n\nPress a key to continue",height=30)
-    frame.append(txt1s1)
-    
+    frame.append(startP)
     el.runFrames(win,frame,frameTimes,trialClock)
     fixiateFrame(frame)
-    getResp()
+    event.waitKeys()
 
-    # inst 2
+    #fixation 
     frame = []
     frameTimes=[1]
-    txt1s1= visual.TextStim(win,"This is the start screen. " \
-                            "This will appear throughout the experiment",pos=(0,200),height=20)
-    txt1s2= visual.TextStim(win,"First, one of the boxes will flash white. " \
+    text1= visual.TextStim(win,"This is the start screen. " \
+                            "This will appear at the start of each trial",pos=(0,200),height=20)
+    text2= visual.TextStim(win,"First, one of the boxes will flash white. " \
                             "\nThis is the cue. \n\nClick to see the cue", pos=(0,-200),height=20)
-    frame.append(visual.BufferImageStim(win,stim=[txt1s1,txt1s2,fixL,fixR,fixX]))
-    
+    frame.append(visual.BufferImageStim(win,stim=[text1,text2,fixL,fixR,fixX]))
     el.runFrames(win,frame,frameTimes,trialClock)
     fixiateFrame(frame)
-    getResp()
+    event.waitKeys()
 
-    #cue
-    frame = []
-    frameTimes=[2,150]
-    box[0].fillColor = [1, 1, 1]
-    cue = visual.BufferImageStim(win, stim=box + [fixX])
-    box[0].fillColor = [-1, -1, -1]
-    frame.append(cue)
-    frame.append(visual.BufferImageStim(win,stim=[fixX,fixL,fixR]))    
-    
-    el.runFrames(win, frame, frameTimes, trialClock)
-
-    #inst 3
-    frame = []
-    frameTimes=[1]
-    txt1s3 = visual.TextStim(win, "Looks good! That was the cue. " \
-                            "\n\nNext, a letter from the middle row on the keyboard will flash in one of the boxes. " \
-                            "\nFor this practice, it will be in the same box as the cue.", pos=(0, 200), height=20)
-    txt1s4 = visual.TextStim(win, "Press a key to continue", pos=(0, -200), height=20)
-    frame.append(visual.BufferImageStim(win, stim=[txt1s3, txt1s4, fixL, fixR, fixX]))
-    
+    #cue 
+    cuePractice()
+    text3=visual.TextStim(win, "That was the cue." \
+                          "Do you want to see it again? (Click Y for yes or N for no)", pos=(0,200),height=20)
+    frame.append(visual.BufferImageStim(win,stim=[text3,fixL,fixR,fixX]))
     el.runFrames(win,frame,frameTimes,trialClock)
     fixiateFrame(frame)
-    getResp()
+    event.waitKeys()
 
-    #target
-    stim='incorrect'
-    while stim=='incorrect':
-        frame = []
-        frameTimes=[5,150,1]
-        frame.append(targ)
-        frame.append(visual.BufferImageStim(win,stim=[fixX,fixL,fixR]))
-        test=visual.TextStim(win,"What letter did you see?",height=20,pos=(0,-200))
-        frame.append(visual.BufferImageStim(win,stim=[test,fixX,fixL,fixR]))    
-        [resp,rt]=getResp()
 
-        el.runFrames(win, frame, frameTimes, trialClock)
-        fixiateFrame(frame)
     
-        if resp=='a':
-            stim='correct'
-            txt1s5 = visual.TextStim(win, "Nice job!\nClick to continue.", pos=(0,200), height=20)
-        else:
-            txt1s5 = visual.TextStim(win, "Not quite, let's try again.\nClick to see it again.", pos=(0,200), height=20)
-        
-        frame2 = []
-        frameTimes2=[1]
-        frame2.append(visual.BufferImageStim(win,stim=[txt1s5,fixX,fixL,fixR]))
-        el.runFrames(win, frame2, frameTimes2, trialClock)
-        fixiateFrame(frame2)
-
 ###################
 ###################
 ###################    
@@ -276,7 +249,7 @@ def intro():
     event.waitKeys()
 
 intro()
-#trainFR()
+trainFR()
 startExp()
 blocks=[0,1,2,3,4,5]
 for i in range(int(len(blocks))): 
