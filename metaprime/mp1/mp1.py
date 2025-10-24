@@ -13,8 +13,7 @@ trialClock=core.Clock()
 expName="mp1"
 dbConf=exlib.data5
 seed = random.randrange(1e6)
-# [pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
-[pid,sid,fname] = [1,1,'Me.dat']
+[pid,sid,fname]=exlib.startExp(expName,dbConf,pool=1,lockBox=True,refreshRate=refreshRate)
 fptr = open(fname,'w')
 # endregion
 
@@ -22,7 +21,7 @@ fptr = open(fname,'w')
 # region
 num_blocks = 3
 n_trials_per_condition = 3
-ISI_frames = [6]
+ISI_frames = [0, 4, 8, 12, 16, 28]
 # ISI_frames = [0, 2, 4, 6, 8, 10, 12] # Vorberg's
 num_trials_per_block = 144
 primeFrame = 2
@@ -55,19 +54,19 @@ fixation = visual.TextStim(win, text='+', pos=(0, 0), color=sti_color, bold = Tr
 
 # contour not touch
 
-prime_up = visual.ShapeStim(
+prime_left = visual.ShapeStim(
     win=win, vertices=[(-90,0),(-70,20),(80,20),(60,0),(80,-20),(-70,-20)],
-    fillColor=sti_color, lineColor=sti_color, size=, ori = -90)
-prime_down = visual.ShapeStim(
+    fillColor=sti_color, lineColor=sti_color, size=1)
+prime_right = visual.ShapeStim(
     win=win, vertices=[(-60,0),(-80,20),(70,20),(90,0),(70,-20),(-80,-20)],
-    fillColor=sti_color, lineColor=sti_color, size=1, ori = 90)
+    fillColor=sti_color, lineColor=sti_color, size=1)
 
-mask_up = visual.ShapeStim(
+mask_left = visual.ShapeStim(
     win=win, vertices=[(-165, 0), (-120, 45), (120, 45), (120, -45), (-120, -45)],
-    fillColor=sti_color , lineColor=sti_color , size=1, ori = -90)
-mask_down = visual.ShapeStim(
+    fillColor=sti_color , lineColor=sti_color , size=1)
+mask_right = visual.ShapeStim(
     win=win, vertices=[(-120, 45), (120, 45), (165,0), (120, -45), (-120, -45)],
-    fillColor=sti_color , lineColor=sti_color , size=1, ori = 90)
+    fillColor=sti_color , lineColor=sti_color , size=1)
 mask_inner = visual.ShapeStim(
     win=win, vertices=[(-105,30),(105,30),(90,15),(105,0),(90,-15),(105,-30),(-105,-30),(-90,-15),(-105,0),(-90,15)],
     fillColor=bg_color, lineColor=bg_color, size=1)
