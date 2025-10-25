@@ -54,19 +54,15 @@ def runTrial(dur, stimCode):
     both=visual.BufferImageStim(win,stim=stim)
     stim.append(both)
     blank = visual.TextStim(win, '', pos = (0.0,0.0))
-    #stim.append(visual.TextStim(win, '+', pos = (-48,0.0)))
-    #stim.append(visual.TextStim(win, '+', pos = (48,0.0)))
-    #make response boxes ... use TextStim instead?
     option = []
-    option.append(visual.TextBox(win, text = "Simultaneous", font_size=18, font_color=[-1,-1,1], color_space='rgb', size=(1.8,.1), pos=(-96,0.0)))
-    option.append(visual.TextBox(win, text = "Non-Simultaneous", font_size=18, font_color=[-1,-1,1], color_space='rgb', size=(1.8,.1), pos=(96,0.0)))
+    option.append(visual.TextBox2(win, text = "Simultaneous", size=(1.8,.1), pos=(-480,-96)))
+    option.append(visual.TextBox2(win, text = "Non-Simultaneous", size=(1.8,.1), pos=(360,-96)))
     options=visual.BufferImageStim(win,stim=option)
     easy=visual.TextStim(win,"help")
 
-    #frames = [blank, stim[stimCode], blank,stim[(1-stimCode)], blank]
-    frames = [blank,easy]
-    frameTimes = [100,100]
-    stamps=elib.runFrames(win, frames, frameTimes, trialClock)
+    frames = [blank, stim[stimCode], blank, both, options]
+    frameTimes = [100, 1, dur, 1, 100]
+    stamps=elib.runFrames(win, frames, frameTimes, trialClock, addBlank=False)
     event.waitKeys()
     exit(1)
     keys = event.waitKeys(timeStamped=trialClock, 
@@ -94,14 +90,12 @@ def integrationTrial(soa,gPar,prac=False):
 	for i in range(len(aDots)):
 		adots.append(visual.Circle(win, pos=(x[aDots[i]],y[aDots[i]]), fillColor=[1, 1, 1], radius=5))
 		alldots.append(visual.Circle(win, pos=(x[aDots[i]],y[aDots[i]]), fillColor=[1, 1, 1], radius=5))
-
 	a=visual.BufferImageStim(win,stim=adots)
-    bdots=[]
-    for i in range(len(bDots)):
+	bdots=[]
+	for i in range(len(bDots)):
 		bdots.append(visual.Circle(win, pos=(x[bDots[i]],y[bDots[i]]), fillColor=[1, 1, 1], radius=5))
 		alldots.append(visual.Circle(win, pos=(x[bDots[i]],y[bDots[i]]), fillColor=[1, 1, 1], radius=5))
 	b=visual.BufferImageStim(win,stim=bdots)
-    
 	frame = [fix, blank, a, blank, b, blank, allRed]
 	frameDurations = [120, 60, 5, soa, 5, 60, 1]
 	if prac:
@@ -178,7 +172,7 @@ def runInteg(trialNum):
 
 
 #runInteg(10)
-#runSimult(10)
+runSimult(2)
 support.instruct(win,"Welcome")
 support.instruct(win,"Integration Task")
 runInteg(0)

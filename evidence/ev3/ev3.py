@@ -1,4 +1,4 @@
-from psychopy import core, visual, sound, event, clock
+zfrom psychopy import core, visual, sound, event, clock
 import numpy as np
 from numpy import random
 import sys
