@@ -1,4 +1,4 @@
-zfrom psychopy import core, visual, sound, event, clock
+from psychopy import core, visual, sound, event, clock
 import numpy as np
 from numpy import random
 import sys
@@ -177,6 +177,8 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                 continue
 
         if line and line.isdigit():
+            if(line == None):
+                line = 0
             val = int(line)
             norm_val = -(val - 512) / 512.0
             x_offset = norm_val * max_offset
@@ -232,6 +234,8 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                     continue
 
             if line and line.isdigit():
+                if(line == None):
+                    line = 0
                 val = int(line)
                 norm_val = -(val - 512) / 512.0
                 x_offset = norm_val * max_offset
@@ -254,9 +258,13 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                 feedback_stim = visual.TextStim(win, text=last_feedback_text, height=30, color=last_feedback_color, pos=(0, 110))
                 feedback_stim.draw()
 
+                if(trial_score == None):
+                    trial_score = 0
                 trial_score_stim = visual.TextStim(win, text=f"Trial score: {int(trial_score)}", height=30, color=last_feedback_color, pos=(0, 80))
                 trial_score_stim.draw()
 
+                if(total_score == None):
+                    total_score = 0
                 score_stim = visual.TextStim(win, text=f"Total score: {int(total_score)}", height=30, color=last_feedback_color, pos=(0, 50))
                 score_stim.draw()
 
@@ -302,6 +310,8 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                     continue
 
             if line and line.isdigit():
+                if(line == None):
+                    line = 0
                 val = int(line)
                 norm_val = -(val - 512) / 512.0
                 x_offset = norm_val * max_offset
@@ -340,6 +350,9 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                             trial_score = -bottom_right_bar.height * 2/5 if bottom_right_bar.height != 0 else -bottom_left_bar.height * 2/5
 
                         total_score += trial_score
+                        
+                        if(trial_score == None):
+                            trial_score = 0
                         summary.append([trial, dotNum, correct, x_offset, int(trial_score)])
                         trial += 1
 
@@ -358,6 +371,8 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                                     continue
 
                             if line and line.isdigit():
+                                if(line == None):
+                                    line = 0
                                 val = int(line)
                                 norm_val = -(val - 512) / 512.0
                                 x_offset = norm_val * max_offset
@@ -384,9 +399,13 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                                 feedback_stim = visual.TextStim(win, text=last_feedback_text, height=30, color=last_feedback_color, pos=(0, 110))
                                 feedback_stim.draw()
 
+                                if(trial_score == None):
+                                    trial_score = 0
                                 trial_score_stim = visual.TextStim(win, text=f"Trial score: {int(trial_score)}", height=30, color=last_feedback_color, pos=(0, 80))
                                 trial_score_stim.draw()
 
+                                if(total_score == None):
+                                    total_score = 0
                                 score_stim = visual.TextStim(win, text=f"Total score: {int(total_score)}", height=30, color=last_feedback_color, pos=(0, 50))
                                 score_stim.draw()
 

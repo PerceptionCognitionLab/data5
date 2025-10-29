@@ -13,7 +13,6 @@ rng = random.default_rng(seed)
 # globals
 abortKey = ['escape']
 refreshRate = 60
-expName = "ev4"
 mu = 10
 sd = 25
 numDots = 30
@@ -30,9 +29,9 @@ use_elib = True
 # elib setup
 if(use_elib):
     elib.setRefreshRate(refreshRate)
-    expName="ev3"
+    expName="ev4"
     dbConf=elib.data5
-    [pid,sid,fname]=elib.startExp(expName,dbConf,pool=2,lockBox=False,refreshRate=refreshRate)    
+    [pid,sid,fname]=elib.startExp(expName,dbConf,pool=2,lockBox=True,refreshRate=refreshRate)    
     froot=fname[:-4]
     resp_file=open(froot+".resp", "w")
     stim_file=open(froot+".stim", "w")
@@ -99,7 +98,7 @@ def playIncorrectSound():
     core.wait(0.5)
 
 # feedback setup
-last_feedback_text = ''
+last_feedback_text = None
 last_feedback_color = 'white'
 total_score = 0
 
@@ -167,7 +166,7 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
         if "escape" in event.getKeys():
             return resp, stim, summary            
 
-        line = 0
+        line = None
         while ser.in_waiting:
             try:
                 raw = ser.readline().decode("utf-8", errors="ignore").strip()
@@ -177,6 +176,8 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                 continue
 
         if line and line.isdigit():
+            if(line == None):
+                line = 0
             val = int(line)
             norm_val = -(val - 512) / 512.0
             x_offset = norm_val * max_offset
@@ -205,7 +206,7 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
         win.flip()
 
     trial = 0
-    trial_score = 0
+    trial_score = None
     while(trial < numTrials):
         dotNum = 0
 
@@ -214,7 +215,7 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
         circ = visual.Circle(win, pos=(coordinates[dotNum], dotY),
                              fillColor=[1, 1, 1], radius=dotRadius)
 
-        inside_time = 0
+        inside_time = None
 
         # ready check before trial
         while True:
@@ -232,6 +233,8 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                     continue
 
             if line and line.isdigit():
+                if(line == None):
+                    line = 0
                 val = int(line)
                 norm_val = -(val - 512) / 512.0
                 x_offset = norm_val * max_offset
@@ -254,11 +257,13 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                 feedback_stim = visual.TextStim(win, text=last_feedback_text, height=30, color=last_feedback_color, pos=(0, 110))
                 feedback_stim.draw()
 
-                if(trial_score is None):
+                if(trial_score == None):
                     trial_score = 0
                 trial_score_stim = visual.TextStim(win, text=f"Trial score: {int(trial_score)}", height=30, color=last_feedback_color, pos=(0, 80))
                 trial_score_stim.draw()
 
+                if(total_score == None):
+                    total_score = 0
                 score_stim = visual.TextStim(win, text=f"Total score: {int(total_score)}", height=30, color=last_feedback_color, pos=(0, 50))
                 score_stim.draw()
 
@@ -304,6 +309,8 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                     continue
 
             if line and line.isdigit():
+                if(line == None):
+                    line = 0
                 val = int(line)
                 norm_val = -(val - 512) / 512.0
                 x_offset = norm_val * max_offset
@@ -342,6 +349,9 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                             trial_score = -bottom_right_bar.height * 2/5 if bottom_right_bar.height != 0 else -bottom_left_bar.height * 2/5
 
                         total_score += trial_score
+                        
+                        if(trial_score == None):
+                            trial_score = 0
                         summary.append([trial, dotNum, correct, x_offset, int(trial_score)])
                         trial += 1
 
@@ -360,6 +370,8 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                                     continue
 
                             if line and line.isdigit():
+                                if(line == None):
+                                    line = 0
                                 val = int(line)
                                 norm_val = -(val - 512) / 512.0
                                 x_offset = norm_val * max_offset
@@ -386,11 +398,13 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
                                 feedback_stim = visual.TextStim(win, text=last_feedback_text, height=30, color=last_feedback_color, pos=(0, 110))
                                 feedback_stim.draw()
 
-                                if(trial_score is None):
+                                if(trial_score == None):
                                     trial_score = 0
                                 trial_score_stim = visual.TextStim(win, text=f"Trial score: {int(trial_score)}", height=30, color=last_feedback_color, pos=(0, 80))
                                 trial_score_stim.draw()
 
+                                if(total_score == None):
+                                    total_score = 0
                                 score_stim = visual.TextStim(win, text=f"Total score: {int(total_score)}", height=30, color=last_feedback_color, pos=(0, 50))
                                 score_stim.draw()
 
