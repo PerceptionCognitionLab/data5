@@ -55,16 +55,24 @@ def runTrial(dur, stimCode):
     stim.append(both)
     blank = visual.TextStim(win, '', pos = (0.0,0.0))
     option = []
-    option.append(visual.TextBox2(win, text = "Simultaneous", size=(1.8,.1), pos=(-480,-96)))
-    option.append(visual.TextBox2(win, text = "Non-Simultaneous", size=(1.8,.1), pos=(360,-96)))
+    option.append(visual.TextBox2(win, text = "Non-Simultaneous", size=(1.8,.1), pos=(-480,-96)))
+    option.append(visual.TextBox2(win, text = "Simultaneous", size=(1.8,.1), pos=(360,-96)))
     options=visual.BufferImageStim(win,stim=option)
     easy=visual.TextStim(win,"help")
 
     frames = [blank, stim[stimCode], blank, both, options]
-    frameTimes = [100, 1, dur, 1, 100]
+    frameTimes = [100, 1, dur, 1, 1]
+
+    stamps=elib.runFrames(win,frames,frameTimes,trialClock)
+    critTime=elib.actualFrameDurations(frameTimes,stamps)[2]
+    critPass=(np.absolute(dur/refreshRate-critTime)<.001)
+    resp=support.mouseResponse2(mouse,win,frames[4])
+    #print(resp)
+    
+    '''
     stamps=elib.runFrames(win, frames, frameTimes, trialClock, addBlank=False)
     event.waitKeys()
-    exit(1)
+    #exit(1)
     keys = event.waitKeys(timeStamped=trialClock, 
                           keyList=['x', 'm', '9'])
     resp=1
@@ -72,6 +80,7 @@ def runTrial(dur, stimCode):
         resp=0
     return(resp)
     # resp "1/m" means same and "0/x" is different
+    '''
 
 #############
 # fusion task trial
@@ -171,13 +180,12 @@ def runInteg(trialNum):
 #############
 
 
-#runInteg(10)
-runSimult(2)
+
 support.instruct(win,"Welcome")
 support.instruct(win,"Integration Task")
 runInteg(0)
 support.instruct(win,"Simultaneous Task")
-runSimult(2)
+runSimult(5)
 
 
 fptr.close()

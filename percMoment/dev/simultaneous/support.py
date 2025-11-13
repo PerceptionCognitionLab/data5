@@ -53,6 +53,33 @@ def mouseOnResp(x, y, mousePos, crit=20):
         out = -1    
     return out
 
+def mouseOnResp2(mousePos, crit=20):
+    [x,y] = mousePos
+    if y < 0:
+        if x < 0:
+              out = 0
+        elif x > 0:
+              out = 1
+    else: 
+        out = -1    
+    return out
+
+def mouseResponse2(mouse,win,frame):
+        mousePress = False
+        mouse.setVisible(True)
+        mouse.setPos((300,0))
+        # non-simult pos=(-480,-96) & simult pos=(360,-96)
+        while not mousePress:
+                buttons = mouse.getPressed(getTime=False)
+                resp = mouseOnResp2(mouse.getPos())
+                frame.draw()
+                if resp > -1: 
+                      print(resp)
+                win.flip()
+                mousePress = any(buttons)
+        mouse.setVisible(False)
+        return(resp)
+
 def mouseResponse(mouse,win,gPar,frame):
         [x,y]=[gPar['x'],gPar['y']]
         mousePress = False
@@ -61,6 +88,7 @@ def mouseResponse(mouse,win,gPar,frame):
         while not mousePress:
                 buttons = mouse.getPressed(getTime=False)
                 resp = mouseOnResp(x, y, mouse.getPos())
+                print(resp)
                 frame.draw()
                 if resp > -1: 
                         respDot = visual.Circle(win, pos=(x[resp], y[resp]), fillColor=[1, 1, 1], radius=2)
