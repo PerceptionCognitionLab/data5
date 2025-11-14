@@ -49,14 +49,14 @@ int_trial = 3
 
 def runTrial(dur, stimCode):
     stim=[]
-    stim.append(visual.Circle(win, pos=(-96,0.0), fillColor=[1, 1, 1], radius=4))
+    stim.append(visual.Circle(win, pos=(-136,0.0), fillColor=[1, 1, 1], radius=4))
     stim.append(visual.Circle(win, pos=(96,0.0), fillColor=[1, 1, 1], radius=4))
     both=visual.BufferImageStim(win,stim=stim)
     stim.append(both)
     blank = visual.TextStim(win, '', pos = (0.0,0.0))
     option = []
-    option.append(visual.TextBox2(win, text = "Non-Simultaneous", size=(1.8,.1), pos=(-480,-96)))
-    option.append(visual.TextBox2(win, text = "Simultaneous", size=(1.8,.1), pos=(360,-96)))
+    option.append(visual.TextBox2(win, text = "Non-Simultaneous", size=(1.8,.1), pos=(-120,240)))
+    option.append(visual.TextBox2(win, text = "Simultaneous", size=(1.8,.1), pos=(-100,-280)))
     options=visual.BufferImageStim(win,stim=option)
     easy=visual.TextStim(win,"help")
 
@@ -67,7 +67,7 @@ def runTrial(dur, stimCode):
     critTime=elib.actualFrameDurations(frameTimes,stamps)[2]
     critPass=(np.absolute(dur/refreshRate-critTime)<.001)
     resp=support.mouseResponse2(mouse,win,frames[4])
-    #print(resp)
+    return(resp)
     
     '''
     stamps=elib.runFrames(win, frames, frameTimes, trialClock, addBlank=False)
@@ -130,6 +130,7 @@ def runSimult(trialNum):
         trialNum = i
         stim = random.choice([0,1,2])
         resp=runTrial(dur,stim)
+        print(resp)
         info=[trialNum, dur, stim, resp]
         if info[2]==2:
             info[2] = 1
@@ -183,9 +184,9 @@ def runInteg(trialNum):
 
 support.instruct(win,"Welcome")
 support.instruct(win,"Integration Task")
-runInteg(0)
+runInteg(5)
 support.instruct(win,"Simultaneous Task")
-runSimult(5)
+runSimult()
 
 
 fptr.close()
