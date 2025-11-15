@@ -55,6 +55,7 @@ def mouseOnResp(x, y, mousePos, crit=20):
 
 def mouseOnResp2(mousePos, crit=20):
     [x,y] = mousePos
+    out = 2
     if 50 > x > -150:
         if y > 150:
               out = 0
@@ -67,8 +68,7 @@ def mouseOnResp2(mousePos, crit=20):
 def mouseResponse2(mouse,win,frame):
         mousePress = False
         mouse.setVisible(True)
-        mouse.setPos((300,0))
-        # non-simult pos=(-120,240) & simult pos=(-100,-280)
+        mouse.setPos((0,0))
         #simult = (-88,-285) to (31,-278)
         #non-simult = (-92,239) to (59,239)
         while not mousePress:

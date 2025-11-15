@@ -55,18 +55,18 @@ def runTrial(dur, stimCode):
     stim.append(both)
     blank = visual.TextStim(win, '', pos = (0.0,0.0))
     option = []
-    option.append(visual.TextBox2(win, text = "Non-Simultaneous", size=(1.8,.1), pos=(-120,240)))
-    option.append(visual.TextBox2(win, text = "Simultaneous", size=(1.8,.1), pos=(-100,-280)))
+    option.append(visual.TextBox2(win, text = "Different", size=(1.8,.1), pos=(-120,240)))
+    option.append(visual.TextBox2(win, text = "Same", size=(1.8,.1), pos=(-100,-280)))
     options=visual.BufferImageStim(win,stim=option)
     easy=visual.TextStim(win,"help")
 
-    frames = [blank, stim[stimCode], blank, both, options]
-    frameTimes = [100, 1, dur, 1, 1]
+    frames = [fix, blank, stim[stimCode], blank, both, options]
+    frameTimes = [60,60, 1, dur, 1, 1]
 
     stamps=elib.runFrames(win,frames,frameTimes,trialClock)
-    critTime=elib.actualFrameDurations(frameTimes,stamps)[2]
+    critTime=elib.actualFrameDurations(frameTimes,stamps)[3]
     critPass=(np.absolute(dur/refreshRate-critTime)<.001)
-    resp=support.mouseResponse2(mouse,win,frames[4])
+    resp=support.mouseResponse2(mouse,win,frames[5])
     return(resp)
     
     '''
@@ -124,13 +124,17 @@ def integrationTrial(soa,gPar,prac=False):
 # staircase
 #############
 def runSimult(trialNum):
+    header=["trialNum", "dur", "stim", "resp"]
+    print(*header, sep=' ', file=fptr)
     counter = 0
     dur = 6
     for i in range(trialNum):
         trialNum = i
-        stim = random.choice([0,1,2])
+        stim = random.choice([0,2])
+        if stim == 0:
+            stim = random.choice([0,1])
         resp=runTrial(dur,stim)
-        print(resp)
+        #print(resp)
         info=[trialNum, dur, stim, resp]
         if info[2]==2:
             info[2] = 1
@@ -159,7 +163,7 @@ def runInteg(trialNum):
     for i in range(trialNum):
         trialNum = i
         resp=integrationTrial(soa,gPar,prac=False)
-        print("target,resp,correct",resp[0],resp[1],resp[2])
+        #print("target,resp,correct",resp[0],resp[1],resp[2])
         info=[trialNum, soa, resp[2]]
         print(*info, sep=' ', file=fptr)
         # staircase
@@ -184,9 +188,10 @@ def runInteg(trialNum):
 
 support.instruct(win,"Welcome")
 support.instruct(win,"Integration Task")
-runInteg(5)
+runInteg(0)
 support.instruct(win,"Simultaneous Task")
-runSimult()
+runSimult(1)
+support.instruct(win,"Thank You! :)")
 
 
 fptr.close()

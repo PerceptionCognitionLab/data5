@@ -77,9 +77,11 @@ def getResp():
     resp = gPar.keyList.index(resp)
     return([resp,round(rt,3)])
 
-def runTrial(lPar):
+
+
+def runTrial(lPar,otherTimes):
     frames=[]
-    frameDurations=[50,2,lPar.dur,16,16,16]
+    frameDurations=[otherTimes[0],otherTimes[1],lPar.dur,otherTimes[2],otherTimes[3],otherTimes[4]]
 
     lPar.target = int(rng.integers(0,9,1))
     lPar.posTarg = int(rng.integers(0,2,1))  #0=left, 1=right
@@ -113,12 +115,9 @@ def runTrial(lPar):
 congruentDur =[50]
 incongruentDur=[80]
 
-def runBlock(blk):
-    blockStart(blk)
-    if (blk==0) | (blk==2) | (blk==4):
-        lPar.isCongruent=1                  #congruent
-    else:
-        lPar.isCongruent=0                  #incongruent
+def runBlock(blk,cong,otherTimes,nTrials):
+    blockStart(blk,cong)
+    lPar.isCongruent=cong
 
     if lPar.isCongruent==1:
         lPar.dur=congruentDur[-1]
@@ -127,8 +126,8 @@ def runBlock(blk):
     
     numCor=0
 
-    for trl in range(gPar.numTrials):
-        [resp,rt]=runTrial(lPar)
+    for trl in range(nTrials):
+        [resp,rt]=runTrial(lPar,otherTimes)
         print(pid,sid,blk,trl,lPar.isCongruent,lPar.target,lPar.dur,resp,rt,sep=", ", file=fptr)
         print(pid,sid,blk,trl,lPar.isCongruent,lPar.target,lPar.dur,resp,rt)
 
@@ -156,7 +155,6 @@ def runBlock(blk):
         incongruentDur.append(lPar.dur)
     
     print(congruentDur)
-
     print(incongruentDur)
 
 
@@ -224,8 +222,8 @@ def trainFR():
 
 
 
-def blockStart(blk):
-    if (blk==0) | (blk==2) | (blk==4):
+def blockStart(blk,cong):
+    if (cong):
         cond = "Same side"
     else:
         cond = "Opposite side"
@@ -248,13 +246,20 @@ def intro():
     win.flip()
     event.waitKeys()
 
+
+congOrder=[1,0,1,0,0,1]
+pracCongOrder=[1,0]
+otherTimes=[50,2,16,16,16]
+pracOtherTimes=[100,100,100,16,16]
 intro()
-trainFR()
+#trainFR()
 startExp()
+
+runBlock(-99,1,pracOtherTimes,10)
+
 blocks=[0,1,2,3,4,5]
 for i in range(int(len(blocks))): 
-    blk=blocks[i]
-    runBlock(blk)
+    runBlock(i,congOrder[i],otherTimes,gPar.numTrials)
 
 #hz=round(win.getActualFrameRate())
 #[resX,resY]=win.size
@@ -263,3 +268,4 @@ fptr.close
 #el.stopExp(sid,hz,resX,resY,seed,dbConf)
 core.quit()
 
+frameDurations=[50,2,lPar.dur,16,16,16]
