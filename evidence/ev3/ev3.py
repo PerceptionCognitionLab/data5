@@ -25,7 +25,7 @@ barX = 75
 barY = -150
 barWidth = 10
 alpha = 1 #loss/win
-use_elib = True
+use_elib = False
 
 # elib setup
 if(use_elib):
@@ -42,6 +42,7 @@ else:
     stim_file=open("test_stim", "w")
     summary_file=open("test_summary", "w")
 
+elib.setRefreshRate(refreshRate)
 
 # serial setup
 ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.01)
