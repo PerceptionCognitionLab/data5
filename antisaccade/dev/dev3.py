@@ -83,7 +83,6 @@ def getResp():
 def runTrial():
     frames=[]
 
-
     if lPar.isCongruent==1:
         posCue=lPar.posTarg
     else:
@@ -112,9 +111,12 @@ def runTrial():
     return([resp,rt])
     
 
-def runBlock(blk,cong,nTrials,increment=2):
+def runBlock(blk,cong,nTrials,increment):
+    txt(blk)
+    blockStart(blk,cong)
     lPar.isCongruent=cong
     numCor=0
+    
     for trl in range(nTrials):
         lPar.target = int(rng.integers(0,9,1))
         lPar.posTarg = int(rng.integers(0,2,1))  #0=left, 1=right
@@ -135,25 +137,141 @@ def runBlock(blk,cong,nTrials,increment=2):
 
     return(lPar.dur[targDur])
 
+def blockStart(blk,cong):
+    if (cong==1):
+        cond = "Same side"
+    else:
+        cond = "Opposite side"
+    message=visual.TextStim(win,f"Block {blk+1}  \n{cond} \n\nPress key to start",height=30)
+    message.draw()
+    win.flip()
+    event.waitKeys()
 
-last=[100,100]
+def intro():
+    messageIntro=visual.TextStim(win,"Welcome to the experiment! \n\n We will start with some practice blocks." \
+                                "\n\n Press any key to begin.",height=30)
+    messageIntro.draw()
+    win.flip()
+    event.waitKeys()
 
 
-#Block 0
+def txt(blk):
+    if (blk==0):
+        text=visual.TextStim(win,"In this experiemnt, you will see two squares on either side of the screen." \
+                          " One of the squares will light up (the cue). Then a letter (the target) will appear in either the same square" \
+                            " or the opposite square. Your job is to type what the letter was." \
+                            "\n\n\nFirst, let's see what it looks like when the cue and the target are on the same side." \
+                            "\n\n\nPress any key to continue", height=30)
+        text.draw()
+        win.flip()
+        event.waitKeys()
+        
+    if (blk==1):
+        text=visual.TextStim(win,"Great job!\n\n\nNext, let's see what it looks like when the cue and the target are on opposite sides." \
+                            "\n\n\nPress any key to continue", height=30)
+        text.draw()
+        win.flip()
+        event.waitKeys()
+
+    if (blk==2):
+        text=visual.TextStim(win,"Feeling ready? \n\nNow we will start the experiment blocks. " \
+                            "\n\nPress a key to continue.",height=30) 
+        text.draw()
+        win.flip()
+        event.waitKeys()  
+
+
+
+#def prac1():
+#    prac1=visual.TextStim(win,"In this experiemnt, you will see two squares on either side of the screen." \
+#                          " One of the squares will light up (the cue). Then a letter (the target) will appear in either the same square" \
+#                            " or the opposite square. Your job is to type what the letter was." \
+#                            "\n\n\nFirst, let's see what it looks like when the cue and the target are on the same side." \
+#                            "\n\n\nPress any key to continue", height=30)
+#    prac1.draw()
+#    win.flip()
+#    event.waitKeys()
+
+#def prac2():
+#    prac2=visual.TextStim(win,"Great job!\n\n\nNext, let's see what it looks like when the cue and the target are on opposite sides." \
+#                            "\n\n\nPress any key to continue", height=30)
+#    prac2.draw()
+#    win.flip()
+#    event.waitKeys()
+
+#def startExp():
+#    message=visual.TextStim(win,"Feeling ready? \n\nNow we will start the experiment blocks. " \
+#                            "\n\nPress a key to continue.",height=30)
+#    message.draw()
+#    win.flip()
+#    event.waitKeys()
+
+
+
+
+
+
+
+intro()
+#PRACTICE BLOCKS
+last=[90,70]
+
+#Block 0 - congruent practice 1 (slow)
+#prac1()
 cong=1
-lPar.dur=[50,20,last[cong],20,16,16]
-last[cong]=runBlock(0,cong,1)
-#Block 1
+nTrials=5
+increment=5
+lPar.dur=[50,12,last[cong],20,16,16]
+last[cong]=runBlock(0,cong,nTrials,increment)
+
+#Block 1 - incongruent practice (slow)
+#prac2()
 cong=0
-lPar.dur=[50,20,last[cong],20,16,16]
-last[cong]=runBlock(1,cong,1)
-#Block 2
-last=[80,50]
-cong=1
-lPar.dur=[50,20,last[cong],20,16,16]
-last[cong]=runBlock(2,cong,5,increment=5)
+nTrials=5
+increment=5
+lPar.dur=[50,12,last[cong],20,16,16]
+last[cong]=runBlock(1,cong,nTrials,increment)
 
-print(last)    
+
+
+#EXPERIMENTAL BLOCKS
+#startExp()
+last=[60,40]                                       #variables consistent across blocks (or changed in another block)
+nTrials=10
+increment=5
+#Block 2 - congruent 1
+cong=1
+lPar.dur=[50,2,last[cong],16,16,16]
+last[cong]=runBlock(2,cong,nTrials,increment)
+
+#Block 3 - incongruent 2
+cong=0
+lPar.dur=[50,2,last[cong],16,16,16]
+last[cong]=runBlock(3,cong,nTrials,increment)
+
+#Block 4 - congruent 2
+increment=2                                         #decreasing increment
+cong=1
+lPar.dur=[50,2,last[cong],16,16,16]
+last[cong]=runBlock(4,cong,nTrials,increment)
+
+#Block 5 -incongruent 2
+cong=0
+lPar.dur=[50,2,last[cong],16,16,16]
+last[cong]=runBlock(5,cong,nTrials,increment)
+
+#Block 6 - incongruent 3
+cong=0
+lPar.dur=[50,2,last[cong],16,16,16]
+last[cong]=runBlock(6,cong,nTrials,increment)
+
+#Block 7 - congruent 3
+cong=1
+lPar.dur=[50,2,last[cong],16,16,16]
+last[cong]=runBlock(7,cong,nTrials,increment)
+
+
+
 #hz=round(win.getActualFrameRate())
 #[resX,resY]=win.size
 win.close()
