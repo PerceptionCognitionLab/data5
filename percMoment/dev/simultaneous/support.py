@@ -5,11 +5,14 @@ import numpy as np
 
 correct1 = sound.Sound(500,secs = .1) # correct response
 correct2 = sound.Sound(1000,secs = .2)
+error1 = sound.Sound(value=300,secs=.5)
 
 def feedback(correct):
-        if correct:
+        if correct == "correct":
                 correct1.play()
                 correct2.play()
+        else:
+            error1.play()
 
 def initGlobals(gPar0):
 
@@ -121,14 +124,9 @@ def stairCase(soa,correct,correctPrevious,increment):
         return ([soa,cv]) 
 
 def instruct(win, message):
-    text_height = 35  
-    line_spacing = 1.5  
-    lines = message.split('\n')
+    visual.TextBox2(win, text=message, pos=(0, 0), size=(900, None), letterHeight=35, lineSpacing=1.2, alignment='center', anchor='center', padding=0).draw()
 
-    for i, line in enumerate(lines):
-        y_position = (i * text_height * line_spacing) - (len(lines) * text_height * line_spacing / 2)
-        visual.TextStim(win, text=line, height=text_height, pos=(0, y_position)).draw()
 
     win.flip()
-    event.waitKeys()
+    event.waitKeys(keyList=["space"])
     return 0

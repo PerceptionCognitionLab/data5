@@ -88,7 +88,7 @@ def runTrial(dur, stimCode):
 # fusion task trial
 #############
 
-def integrationTrial(soa,gPar,prac=False):
+def integrationTrial(soa,gPar):
 	[x,y]=[gPar['x'],gPar['y']]
 	target= random.choice(gPar['validTarget'])
 	[aDots, bDots]=support.intDotIndex(gPar,target)
@@ -109,10 +109,7 @@ def integrationTrial(soa,gPar,prac=False):
 	b=visual.BufferImageStim(win,stim=bdots)
 	frame = [fix, blank, a, blank, b, blank, allRed]
 	frameDurations = [120, 60, 5, soa, 5, 60, 1]
-	if prac:
-			all=visual.BufferImageStim(win,stim=alldots)
-			frame = [fix,blank,all,blank,blank,blank,allRed]
-			frameDurations=[120,60,120,1,1,60,1]
+
 	stamps=elib.runFrames(win,frame,frameDurations,trialClock)
 	critTime=elib.actualFrameDurations(frameDurations,stamps)[3]
 	critPass=(np.absolute(soa/refreshRate-critTime)<.001)
@@ -125,7 +122,7 @@ def integrationTrial(soa,gPar,prac=False):
 #############
 # staircase
 #############
-def runSimult(trialNum):
+def runSimult(trialNum, prac=False):
     header=["trialNum", "dur", "stim", "resp"]
     print(*header, sep=' ', file=fptr)
     counter = 0
@@ -147,25 +144,40 @@ def runSimult(trialNum):
         if (info[2]==info[3])&(counter==0):
             counter+=1
             support.feedback("correct")
+            if prac:
+                feedback_text = 'Correct!'
+                visual.TextStim(win, text=feedback_text, pos=(0, 0)).draw()
+                win.flip()
+                core.wait(1)  # Display feedback for 1 second
         elif (info[2]==info[3])&(counter==1):
             support.feedback("correct")
             dur = dur-2
             if dur<0:
                 dur=0
             counter=0
+            if prac:
+                feedback_text = 'Correct!'
+                visual.TextStim(win, text=feedback_text, pos=(0, 0)).draw()
+                win.flip()
+                core.wait(1)  # Display feedback for 1 second
         else:
             support.feedback("incorrect")
             dur = dur+2
             if dur>8:
                 dur=8
             counter=0
+            if prac:
+                feedback_text = 'Inorrect!'
+                visual.TextStim(win, text=feedback_text, pos=(0, 0)).draw()
+                win.flip()
+                core.wait(1)  # Display feedback for 1 second
 
-def runInteg(trialNum):
+def runInteg(trialNum, prac=False):
     counter = 0
     soa = 6
     for i in range(trialNum):
         trialNum = i
-        resp=integrationTrial(soa,gPar,prac=False)
+        resp=integrationTrial(soa,gPar)
         #print("target,resp,correct",resp[0],resp[1],resp[2])
         info=[trialNum, soa, resp[2]]
         print(*info, sep=' ', file=fptr)
@@ -173,31 +185,56 @@ def runInteg(trialNum):
         if (info[2]==True)&(counter==0):
             support.feedback("correct")
             counter+=1
+            if prac:
+                feedback_text = 'Correct!'
+                visual.TextStim(win, text=feedback_text, pos=(0, 0)).draw()
+                win.flip()
+                core.wait(1)  # Display feedback for 1 second
         elif (info[2]==True)&(counter==1):
             support.feedback("correct")
             soa = soa+2
             if soa>8:
                 soa=8
             counter=0
-            
+            if prac:
+                feedback_text = 'Correct!'
+                visual.TextStim(win, text=feedback_text, pos=(0, 0)).draw()
+                win.flip()
+                core.wait(1)  # Display feedback for 1 second
         else:
             support.feedback("incorrect")
             soa = soa-1
             if soa<0:
                 soa=0
             counter=0
+            if prac:
+                feedback_text = 'Inorrect!'
+                visual.TextStim(win, text=feedback_text, pos=(0, 0)).draw()
+                win.flip()
+                core.wait(1)  # Display feedback for 1 second
         
 
 #############
 
+# Experiment and Instructions
 
+#Task 1: Integration
+support.instruct(win,"Welcome to the experiment! \n\nPress spacebar to continue.")
+support.instruct(win,"In this session, a gird of white dots will appear in two seperate flashes (as shown below). Your task is to identify the dot that is missing.\n\nWhen all of the dots turn red, click the dot that you think was missing.\n\nPress spacebar to continue")
+support.instruct(win,"Let's begin with some practice. We will provide feedback on correctness.\n\nPress space to start the practice trials.")
+runInteg(5, prac=True ) #turn this into a practice trial
+support.instruct(win,"Practice finished.\n\nPress space to start the trials.")
+runInteg(5)
+support.instruct(win,"Session 1 finished! You can have some rest before starting session 2.\n\nPress spacebar to start session 2.")
 
-support.instruct(win,"Welcome")
-support.instruct(win,"Integration Task")
-runInteg(4)
-support.instruct(win,"Simultaneous Task")
-runSimult(4)
-support.instruct(win,"Thank You! :)")
+#Task 2: Simultaneous
+support.instruct(win,"In this session, two white dots will appear side by side. Your task is to identify if both dots appeared at the same time or if one appeared before the other.\n\nIf you think they appeared at the same time. press 'same'. If you think one of them appeared first, press 'different'.\n\nPress spacebar to continue")
+support.instruct(win,"Let's begin with some practice. We will provide feedback on correctness.\n\nPress space to start the practice trials.")
+runSimult(5, prac=True) #turn this into a practice trial
+support.instruct(win,"Practice finished.\n\nPress space to start the trials.")
+runSimult(5)
+
+support.instruct(win,"Experiment finished. Thank you for your participation! :) \n\nPress spacebar to exit")
 
 
 fptr.close()
