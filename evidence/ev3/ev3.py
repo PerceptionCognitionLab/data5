@@ -1,10 +1,11 @@
-from psychopy import core, visual, sound, event, clock
+from psychopy import core, visual, sound, event
 import numpy as np
 from numpy import random
 import sys
-sys.path.insert(0, '/home/exp/specl-exp/lib/data5/')
-import expLib51 as elib
+sys.path.insert(0, 'E:/lib/data6') #
+import expLib61 as elib #must use expLib61 when on Win Mach. for refresh rate
 import serial
+import time
 
 # random
 seed = 1234
@@ -17,6 +18,7 @@ expName = "ev3"
 mu = 10
 sd = 25
 numDots = 30
+port = 'COM3'
 dotY = 0
 dotRadius = 5
 dotInterval = 0.5 #seconds
@@ -45,8 +47,9 @@ else:
 elib.setRefreshRate(refreshRate)
 
 # serial setup
-ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.01)
+ser = serial.Serial(port, 9600, timeout=1)
 ser.reset_input_buffer()
+time.sleep(2)  # Wait for Arduino to reset
 
 # window
 win = visual.Window(units="pix", size=(500, 500), color=[-1, -1, -1], fullscr=True)
@@ -442,11 +445,11 @@ def displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials):
 
 instructions()
 endChance = 0.15
-numTrials = 10
+numTrials = 1
 total_score = 0
 showBlockStartScreen("Tutorial Block")
 resp, stim, summary = displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials)
-numTrials = 50
+numTrials = 1 
 total_score = 0
 showBlockStartScreen("Main Block")
 resp, stim, summary = displayDots(mu, sd, endChance, dotY, dotRadius, dotInterval, numTrials)
